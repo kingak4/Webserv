@@ -1,4 +1,4 @@
-👤 Person A — Core Server & Network Layer
+👤 Person Kacper — Core Server & Network Layer
 Main Responsibility:
 Low-level server logic, networking, and non-blocking I/O.
 Description:
@@ -24,7 +24,7 @@ Stability and stress testing
 Why this role matters:
 This layer is critical. Any blocking I/O or incorrect poll usage leads directly to project failure during evaluation.
 
-👤 Person B — HTTP Protocol & Request/Response Handling
+👤 Person Kinga — HTTP Protocol & Request/Response Handling
 Main Responsibility:
 HTTP request parsing and HTTP response generation.
 Description:
@@ -51,7 +51,7 @@ Browser compatibility testing (Chrome, Firefox, etc.)
 Why this role matters:
 Browsers strictly follow the HTTP specification. A single malformed header or response can cause incorrect behavior or complete failure.
 
-👤 Person C — Configuration, Routing & CGI
+👤 Person Alina — Configuration, Routing & CGI
 Main Responsibility:
 Server configuration, routing logic, filesystem rules, and CGI execution.
 Description:
@@ -136,17 +136,17 @@ webserv/
     
 Folder Ownership
 
-Person A
+Kacper
 include/core/
 src/core/
 main.cpp (shared integration)
 
-Person B
+Kinga
 include/http/
 src/http/
 tests/requests/
 
-Person C
+Alina
 include/config/
 src/config/
 include/cgi/
