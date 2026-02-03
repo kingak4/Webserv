@@ -6,7 +6,7 @@
 /*   By: kikwasni <kikwasni@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/03 11:25:19 by kikwasni          #+#    #+#             */
-/*   Updated: 2026/02/03 12:37:52 by kikwasni         ###   ########.fr       */
+/*   Updated: 2026/02/03 14:21:46 by kikwasni         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,6 @@
 # include <sstream>
 # include <string>
 # include <vector>
-# include <string>
 
 class Parse
 {
@@ -32,7 +31,20 @@ class Parse
 			bool is_valid;
 	public:
 		Parse();
-		
+		Parse(const std::string &request);
+		Parse(const Parse &other);
+		~Parse();
+		std::string getMethod() const;
+		std::string getPath() const;
+		std::string getVersion() const;
+		std::string getBody() const;
+		std::map<std::string, std::string> getHeaders() const;
+		std::string getRawRequest() const;
+		bool isValid() const;
+		void parseFirstLine();
+		std::vector<std::string> splitBySpace(const std::string &line) const;
+		bool validateVersion() const;
+		bool validateMethod() const;
 };
 			
 
