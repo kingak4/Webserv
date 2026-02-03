@@ -6,7 +6,8 @@
 /*   By: kikwasni <kikwasni@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/03 11:25:34 by kikwasni          #+#    #+#             */
-/*   Updated: 2026/02/03 11:25:35 by kikwasni         ###   ########.fr       */
+/*   Updated: 2026/02/03 12:34:32 by kikwasni         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "http/Response.hpp"

@@ -6,7 +6,18 @@
 /*   By: kikwasni <kikwasni@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/03 11:25:29 by kikwasni          #+#    #+#             */
-/*   Updated: 2026/02/03 11:25:30 by kikwasni         ###   ########.fr       */
+/*   Updated: 2026/02/03 12:34:20 by kikwasni         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "http/Parser.hpp"
+
+Parse::Parse()
+{
+	raw_request = "";
+	method = "";
+	path = "";
+	version = "";
+	body = "";
+	is_valid = false;
+}
