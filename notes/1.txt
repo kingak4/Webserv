@@ -1,5 +1,4 @@
 🧠 NAJPIERW OBRAZ CAŁOŚCI 
-
 Wyobraź sobie serwer jako recepcję w hotelu:
 klient = przeglądarka (Chrome, curl)
 serwer = Twój program
@@ -184,8 +183,3 @@ pipe() → rura do komunikacji
 env → zmienne środowiskowe (REQUEST_METHOD itd.)
 👉 To jest najtrudniejsza część projektu.
 
-🧪 TESTY CGI
-duże body
-chunked
-błędy
-brak Content-Length

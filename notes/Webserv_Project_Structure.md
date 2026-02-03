@@ -136,17 +136,17 @@ webserv/
     
 Folder Ownership
 
-Person A
+Kacper
 include/core/
 src/core/
 main.cpp (shared integration)
 
-Person B
+Kinga
 include/http/
 src/http/
 tests/requests/
 
-Person C
+Alina
 include/config/
 src/config/
 include/cgi/
