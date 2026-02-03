@@ -95,9 +95,9 @@ webserv/
 │   │   └── Poller.hpp
 │   │
 │   ├── http/
-│   │   ├── HttpRequest.hpp
-│   │   ├── HttpResponse.hpp
-│   │   └── HttpParser.hpp
+│   │   ├── Request.hpp
+│   │   ├── Response.hpp
+│   │   └── Parser.hpp
 │   │
 │   ├── config/
 │   │   ├── Config.hpp
@@ -113,8 +113,8 @@ webserv/
 │   │   └── Poller.cpp
 │   │
 │   ├── http/
-│   │   ├── HttpRequest.cpp
-│   │   ├── HttpResponse.cpp
+│   │   ├── Request.cpp
+│   │   ├── Response.cpp
 │   │   └── HttpParser.cpp
 │   │
 │   ├── config/
