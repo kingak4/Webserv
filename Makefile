@@ -1,7 +1,7 @@
 CC = c++
-CFLAGS = -Wall -Wextra -Werror -std=c++98
+CFLAGS = -Wall -Wextra -Werror -g -std=c++98
 NAME = webserv
-SRC =  
+SRC =  main.cpp src/config/Config.cpp
 OBJ = $(SRC:.cpp=.o)
 
 all: $(NAME)
