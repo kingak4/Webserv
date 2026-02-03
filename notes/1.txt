@@ -1,0 +1,185 @@
+🧠 NAJPIERW OBRAZ CAŁOŚCI 
+Wyobraź sobie serwer jako recepcję w hotelu:
+klient = przeglądarka (Chrome, curl)
+serwer = Twój program
+socket = drzwi wejściowe
+HTTP request = formularz, który klient składa
+HTTP response = odpowiedź recepcji
+poll/select = ochrona, która patrzy kto czeka
+event loop = recepcjonistka, która cały czas krąży
+Teraz rozbijemy to na osoby.
+
+👤 OSOBA 1 – CORE / NETWORK
+
+Fundament. Bez tego NIC nie działa.
+Ta osoba nie zajmuje się HTTP.
+Ona robi komunikację między komputerami.
+
+🔌 SOCKET – co to jest?
+Socket = połączenie sieciowe
+
+To jest:
+kanał komunikacji między:
+klientem (np. Chrome)
+a serwerem (Twój program)
+
+W C++:
+socket to liczba (int) → tzw. file descriptor
+
+Proces:
+serwer tworzy socket
+mówi: „słucham na porcie 8080”
+klient się łączy
+powstaje socket klienta
+przez socket lecą dane (request / response)
+👉 Bez socketów nie ma Internetu
+
+👂 LISTEN / ACCEPT – co się dzieje?
+listen() → „czekam na klientów”
+accept() → „ktoś przyszedł – wpuszczam go”
+Każdy klient dostaje swój socket.
+
+🚦 NON-BLOCKING – co to znaczy?
+Non-blocking = nigdy nie czekaj
+Normalnie:
+
+read() może czekać → PROGRAM STOI ❌
+Non-blocking:
+jeśli nie ma danych → wraca od razu
+serwer może obsłużyć innych klientów
+👉 To jest absolutny wymóg projektu.
+
+👀 POLL / SELECT – po co to?
+Masz:
+50 klientów
+każdy może coś wysłać
+albo czekać
+
+Nie możesz:
+pytać każdego co chwilę (za wolne)
+blokować się na jednym
+poll/select mówi Ci:
+
+„Hej, klient nr 7 ma dane do odczytu”
+„Klient nr 12 jest gotowy do zapisu”
+👉 Bez poll = fail projektu
+
+🔁 EVENT LOOP – serce serwera
+To jest pętla nieskończona:
+while (server działa):
+    poll()
+    jeśli nowy klient → accept
+    jeśli klient wysyła → read
+    jeśli klient czeka na odpowiedź → write
+To działa ciągle, aż wyłączysz serwer.
+👉 Event loop = serce + mózg
+🧍‍♂️ ZARZĄDZANIE KLIENTAMI
+
+Serwer musi:
+pamiętać klientów
+wiedzieć:
+kto już wysłał request
+kto czeka na odpowiedź
+kto się rozłączył
+
+Najczęściej:
+mapa fd → Client
+
+🛡 STABILNOŚĆ
+To znaczy:
+klient się rozłączył → serwer żyje
+request niepełny → serwer żyje
+błąd → serwer żyje
+👉 Crash = 0 punktów
+
+👤 OSOBA 2 – HTTP + CONFIG
+Ta osoba nadaje sens danym
+
+📩 HTTP REQUEST – co to?
+To jest tekst, np.:
+GET /index.html HTTP/1.1
+Host: localhost
+Content-Length: 0
+
+Parser HTTP:
+czyta tekst
+rozbija na:
+metodę (GET)
+ścieżkę (/index.html)
+nagłówki
+body
+
+📤 HTTP RESPONSE – co to?
+Odpowiedź serwera:
+HTTP/1.1 200 OK
+Content-Length: 5
+Hello
+Response builder:
+ustala status
+ustala nagłówki
+dokłada body
+
+🔢 STATUS CODES – co to?
+200 OK
+404 Not Found
+403 Forbidden
+405 Method Not Allowed
+500 Internal Server Error
+👉 Złe statusy = fail
+
+⚙️ CONFIG – po co?
+Config mówi serwerowi:
+na jakim porcie
+gdzie są pliki
+jakie metody dozwolone
+gdzie CGI
+limit body
+Bez configu serwer byłby „na sztywno”.
+
+🧭 ROUTING – co to?
+Decyzja:
+„Ten request → do tego katalogu / CGI / pliku”
+Np:
+/ → /var/www
+/upload → upload folder
+/php → CGI
+
+🚨 ERROR PAGES
+Jeśli coś pójdzie źle:
+serwer zawsze musi odpowiedzieć
+nawet jeśli pliku nie ma
+
+👤 OSOBA 3 – CGI + FILES
+Połączenie serwera z systemem
+
+📁 STATIC FILES
+Serwowanie plików:
+HTML
+CSS
+JPG
+GET → plik → response
+
+📤 UPLOAD
+POST:
+klient wysyła plik
+serwer zapisuje go na dysku
+
+❌ DELETE
+usuwa plik
+sprawdza uprawnienia
+
+🧪 CGI – co to w ogóle jest?
+CGI = uruchamiasz inny program
+Serwer:
+dostaje request
+odpala program
+daje mu dane
+czyta wynik
+wysyła klientowi
+
+🔀 PIPE / FORK / ENV
+fork() → tworzysz proces dziecka
+pipe() → rura do komunikacji
+env → zmienne środowiskowe (REQUEST_METHOD itd.)
+👉 To jest najtrudniejsza część projektu.
+
