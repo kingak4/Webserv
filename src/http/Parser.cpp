@@ -6,7 +6,7 @@
 /*   By: kikwasni <kikwasni@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/03 11:25:29 by kikwasni          #+#    #+#             */
-/*   Updated: 2026/02/03 14:21:50 by kikwasni         ###   ########.fr       */
+/*   Updated: 2026/02/04 14:40:16 by kikwasni         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@ Parse::Parse()
 	version = "";
 	body = "";
 	is_valid = false;
+	error_code = 0;
 }
 
 Parse::Parse(const std::string &request)
@@ -30,6 +31,7 @@ Parse::Parse(const std::string &request)
 	version = "";
 	body = "";
 	is_valid = false;
+	error_code = 0;
 }
 Parse::Parse(const Parse &other)
 {
@@ -42,6 +44,7 @@ Parse::Parse(const Parse &other)
 		body = other.body;
 		headers = other.headers;
 		is_valid = other.is_valid;
+		error_code = other.error_code;
 	}
 }
 
@@ -54,44 +57,50 @@ std::string Parse::getBody() const { return body; }
 std::map<std::string, std::string> Parse::getHeaders() const { return headers; }
 std::string Parse::getRawRequest() const { return raw_request; }
 bool Parse::isValid() const { return is_valid; }
+int Parse::getErrorCode() const { return error_code; }
 
-void Pars::parseFirstLine()
+void Parse::parseFirstLine()
 {
-	if(!raw_request.empty())
+	if(raw_request.empty())
 	{
 		is_valid = false;
+		 error_code = 400;
 		return ;
 	}
-	
+	size_t pos = raw_request.find("\r\n");
+	std::string first_line = raw_request.substr(0, pos);
+	if (pos == std::string::npos)
+	{
+		is_valid = false;
+		error_code = 400;
+		return;
+	}
+	std::vector<std::string> parts = splitBySpace(first_line);
+	if(parts.size() != 3) 
+	{
+		is_valid = false;
+		error_code = 400;
+		return ;
+	}
+	method = parts[0];
+	path = parts[1];
+	version = parts[2];
+	if(!validateMethod()) 
+	{
+		is_valid = false;
+		error_code = 405;
+		return;
+	}
+	if(!validateVersion()) 
+	{
+		is_valid = false;
+		error_code = 400;
+		return;
+	}
+	is_valid = true;
+	error_code = 0;
 }
-
-//    znajdź pozycję pierwszego znaku nowej linii (\r\n lub \n)
-//    wyciągnij substring od początku do tej pozycji → to jest first_line
-
-//    podziel first_line po spacjach na trzy części:
-//        części[0] → metoda
-//        części[1] → ścieżka (path)
-//        części[2] → wersja (HTTP/1.1)
-
-//    jeśli liczba części != 3
-//        ustaw is_valid = false
-//        zakończ funkcję
-
-//    przypisz części do zmiennych obiektu:
-//        method = części[0]
-//        path = części[1]
-//        version = części[2]
-
-//    sprawdź poprawność method i version:
-//        jeśli metoda nie jest GET/POST/DELETE
-//            is_valid = false
-//        jeśli wersja nie jest HTTP/1.1 lub HTTP/1.0
-//            is_valid = false
-
-//    jeśli wszystko poprawne
-//        is_valid = true
-//koniec funkcji
-
+	
 bool Parse::validateMethod() const
 {
 	if(method == "GET" || method == "POST" || method == "DELETE")

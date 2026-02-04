@@ -6,7 +6,7 @@
 /*   By: kikwasni <kikwasni@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/03 11:25:19 by kikwasni          #+#    #+#             */
-/*   Updated: 2026/02/03 14:21:46 by kikwasni         ###   ########.fr       */
+/*   Updated: 2026/02/04 14:22:34 by kikwasni         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@ class Parse
 			std::string method, path, version;
 			std::string body;
 			bool is_valid;
+			int error_code;
 	public:
 		Parse();
 		Parse(const std::string &request);
@@ -41,6 +42,7 @@ class Parse
 		std::map<std::string, std::string> getHeaders() const;
 		std::string getRawRequest() const;
 		bool isValid() const;
+		int getErrorCode() const;
 		void parseFirstLine();
 		std::vector<std::string> splitBySpace(const std::string &line) const;
 		bool validateVersion() const;
