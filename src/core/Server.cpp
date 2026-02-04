@@ -18,7 +18,7 @@ int main()
 {
 	int epoll_fd = epoll_create1(0);
 	struct epoll_event event, events[10];
-	event.events = EPOLLIN | EPOLLET;
+	event.events = EPOLLIN | EPOLLOUT | EPOLLET;
 
     // specifying the address
     sockaddr_in serverAddress;
@@ -50,7 +50,10 @@ int main()
 	// listening to the assigned socket
 	listen(serverSocket, 5);
 
-	epoll_ctl(epoll_fd, EPOLL_CTL_ADD, serverSocket, &event);
+	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, serverSocket, &event))
+	{
+		throw std::runtime_error("epoll_ctl: ADD");
+	}
 	
 	while (true)
 	{
