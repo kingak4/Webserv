@@ -3,6 +3,7 @@
 #include <cstring>
 #include <iostream>
 #include <netinet/in.h>
+#include <stdexcept>
 #include <sys/socket.h>
 #include <sys/epoll.h>
 #include <sys/types.h>
@@ -26,6 +27,12 @@ int main()
     serverAddress.sin_addr.s_addr = INADDR_ANY;
     // creating socket
     int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+	int opt = 1;
+	if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+	{
+		close(serverSocket);
+		throw std::runtime_error("setsockopt error(SO_REUSEADDR)");
+	}
 
 	int status = fcntl(serverSocket, F_SETFL, fcntl(serverSocket, F_GETFL, 0) | O_NONBLOCK);
 	if (status == -1)
@@ -33,8 +40,13 @@ int main()
 	event.data.fd = serverSocket;
 
     // binding socket.
-    bind(serverSocket, (struct sockaddr*)&serverAddress,
-         sizeof(serverAddress));
+    if (bind(serverSocket, (struct sockaddr*)&serverAddress,
+         sizeof(serverAddress)) == -1)
+	{
+		close(serverSocket);
+		close(epoll_fd);
+		throw std::runtime_error("binding error");
+	}
 	// listening to the assigned socket
 	listen(serverSocket, 5);
 
@@ -86,10 +98,12 @@ int main()
 						break;
 					}
 					std::cout << "Message from client is: " << buffer << std::endl;
+					std::string s = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 14\n\nWitaj, swiecie!\n";
+					write(events[i].data.fd, s.c_str(), s.length());
+					close(events[i].data.fd);
 				}
 			}
 		}
-
 	}
 
     // closing the socket.
