@@ -6,11 +6,13 @@
 /*   By: kikwasni <kikwasni@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/03 11:25:29 by kikwasni          #+#    #+#             */
-/*   Updated: 2026/02/04 14:40:16 by kikwasni         ###   ########.fr       */
+/*   Updated: 2026/02/04 16:14:15 by kikwasni         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "http/Parser.hpp"
+
+//constructors
 
 Parse::Parse()
 {
@@ -50,6 +52,7 @@ Parse::Parse(const Parse &other)
 
 Parse::~Parse() {};
 
+//getters
 
 std::string Parse::getPath() const { return path; }
 std::string Parse::getVersion() const { return version; }
@@ -58,6 +61,8 @@ std::map<std::string, std::string> Parse::getHeaders() const { return headers; }
 std::string Parse::getRawRequest() const { return raw_request; }
 bool Parse::isValid() const { return is_valid; }
 int Parse::getErrorCode() const { return error_code; }
+
+// parsing the first line
 
 void Parse::parseFirstLine()
 {
@@ -133,3 +138,27 @@ std::vector<std::string> Parse::splitBySpace(const std::string &line) const
 		v.push_back(line.substr(start));
 	return(v);
 }
+
+//second line parsing
+
+std::string Parse::trim(const std::string &s) const
+{
+	if(s.empty())
+		return(s);
+
+	int start = 0;
+	int end = s.size() - 1;
+	
+	while(start < s.size() && (s[start] == ' ' || s[start] == '\t'))
+		start++;
+	while(end >= start && (s[end] == ' ' || s[end] == '\t'))
+	{
+			end--;
+	}
+	if(start > end)
+		return(std::string());
+	int len = end - start + 1;
+	return(s.substr(start, len));
+}
+
+
