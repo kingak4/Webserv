@@ -6,13 +6,13 @@
 /*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:23 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/05 12:12:26 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/02/05 14:32:12 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/config/ConfigParser.hpp"
 
-ConfigParser::ConfigParser() { parse_config_file(); }
+ConfigParser::ConfigParser() {}
 
 ConfigParser::~ConfigParser() {}
 
@@ -85,9 +85,8 @@ void ConfigParser::parse_route_block(string line, Location& loc)
         loc.autoindex = trim_str(line.substr(pos + string("autoindex").length()));
 }
 
-void ConfigParser::parse_config_file()
+void ConfigParser::parse_config_file(string& filename)
 {
-    string filename = "config/default.conf";
     string line;
     Location loc;
     bool in_location;

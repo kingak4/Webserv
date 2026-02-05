@@ -1,17 +1,18 @@
 #include "../../include/config/ConfigParser.hpp"
+#include "../../include/config/Config.hpp"
+#include "../../include/config/Route.hpp"
 
 // helper
-void print_parsed_data()
+void print_parsed_data(Config server_block, Route loc)
 {
-    ConfigParser test;
+    cout << "server_name: " << server_block.get_server_name() << endl;
+    cout << "port: " << server_block.get_port() << endl;
+    cout << "host: " << server_block.get_host() << endl;
+    cout << "client_max_body_size: " << server_block.get_client_max_body_size() << endl;
+    cout << "root: " << server_block.get_root_dir() << endl;
 
-    cout << "server_name: " << test.get_server_name() << endl;
-    cout << "port: " << test.get_port() << endl;
-    cout << "host: " << test.get_host() << endl;
-    cout << "client_max_body_size: " << test.get_client_max_body_size() << endl;
-    cout << "root: " << test.get_root_dir() << endl;
+    map<int, string> error_pages = server_block.get_error_pages();
 
-    map<int, string> error_pages = test.get_error_pages();
     map<int, string>::const_iterator it;
     for (it = error_pages.begin(); it != error_pages.end(); ++it)
     {
@@ -37,6 +38,18 @@ void print_parsed_data()
 
 int main()
 {
-    // print_parsed_data(); // for testing
+    ConfigParser config_parser;
+
+    string filename = "config/default.conf";
+    config_parser.parse_config_file(filename); // default config file
+
+    Config server_block(config_parser);
+
+    vector<Location> loc = config_parser.get_locations();
+    Route loc(loc[0]);
+    Route loc(loc[1]);
+
+    print_parsed_data(server_block, loc); // for testing
+
     return 0;
 }
