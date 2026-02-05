@@ -36,7 +36,7 @@ class Parser
 		//constructors
 		Parser();
 		Parser(const string &request);
-		Parser(const Parse &other);
+		Parser(const Parser &other);
 		~Parser();
 		//getters
 		string get_Method() const;

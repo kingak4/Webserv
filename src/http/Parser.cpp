@@ -54,6 +54,7 @@ Parser::~Parser() {};
 
 //getters
 
+string Parser::get_Method() const {return method;}
 string Parser::get_Path() const { return path; }
 string Parser::get_Version() const { return version; }
 string Parser::get_Body() const { return body; }
@@ -145,15 +146,15 @@ string Parser::trim(const string &s) const
 {
 	if(s.empty())
 		return(s);
-	int start = 0;
-	int end = s.size() - 1;
+	size_t start = 0;
+	size_t end = s.size() - 1;
 	while(start < s.size() && (s[start] == ' ' || s[start] == '\t'))
 		start++;
 	while(end >= start && (s[end] == ' ' || s[end] == '\t'))
 			end--;
 	if(start > end)
 		return(string());
-	int len = end - start + 1;
+	size_t len = end - start + 1;
 	return(s.substr(start, len));
 }
 
@@ -214,7 +215,7 @@ string Parser::extract_Headers_Block() const
 	size_t po = raw_request.find("\r\n\r\n", headers_start);
 	if (po == string::npos)
 		return(string());
-	string headers_block = substr(raw_request, headers_start, po - headers_start);
+	string headers_block = raw_request.substr(headers_start, po - headers_start);
 	return(headers_block);
 }
 
@@ -240,7 +241,7 @@ void Parser::parse_Headers()
 		error_code = 400;
 		return;
 	}
-	string::lines = split_Lines(headers_block);
+	vector<std::string> lines = split_Lines(headers_block);
 	for (size_t i = 0; i < lines.size(); i++)
 	{
 		if(!is_Header_Line_Valid(lines[i]))
@@ -250,7 +251,9 @@ void Parser::parse_Headers()
 			return;
 		}
 		std::pair<std::string, std::string> kv = split_Header(lines[i]);
-		std::string key = toLower(kv.first);
+		std::string key = kv.first;
+		for (size_t j = 0; j < key.size(); j++)
+			key[j] = std::tolower(key[j]);
 		headers[key] = kv.second;
 	}
 	if(!has_Required_Headers())
