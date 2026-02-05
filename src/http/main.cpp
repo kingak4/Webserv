@@ -1,4 +1,4 @@
-#include "./include/config/ConfigParser.hpp"
+#include "../../include/config/ConfigParser.hpp"
 
 // helper
 void print_parsed_data()
@@ -37,6 +37,6 @@ void print_parsed_data()
 
 int main()
 {
-    print_parsed_data(); // for testing
+    // print_parsed_data(); // for testing
     return 0;
 }

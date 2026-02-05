@@ -1,7 +1,7 @@
 CC = c++
-CFLAGS = -Wall -Wextra -Werror -g -std=c++98
+CFLAGS = -Wall -Wextra -Werror -std=c++98 -I./include
 NAME = webserv
-SRC =  main.cpp src/config/ConfigParser.cpp
+SRC =  $(shell find src -name "*.cpp")
 OBJ = $(SRC:.cpp=.o)
 
 all: $(NAME)
