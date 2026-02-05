@@ -6,7 +6,7 @@
 /*   By: kikwasni <kikwasni@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/03 11:25:29 by kikwasni          #+#    #+#             */
-/*   Updated: 2026/02/04 16:14:15 by kikwasni         ###   ########.fr       */
+/*   Updated: 2026/02/05 14:59:04 by kikwasni         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 //constructors
 
-Parse::Parse()
+Parser::Parser()
 {
 	raw_request = "";
 	method = "";
@@ -25,7 +25,7 @@ Parse::Parse()
 	error_code = 0;
 }
 
-Parse::Parse(const std::string &request)
+Parser::Parser(const string &request)
 {
 	raw_request = request;
 	method = "";
@@ -35,7 +35,7 @@ Parse::Parse(const std::string &request)
 	is_valid = false;
 	error_code = 0;
 }
-Parse::Parse(const Parse &other)
+Parser::Parser(const Parser &other)
 {
 	if(this != &other)
 	{
@@ -50,21 +50,21 @@ Parse::Parse(const Parse &other)
 	}
 }
 
-Parse::~Parse() {};
+Parser::~Parser() {};
 
 //getters
 
-std::string Parse::getPath() const { return path; }
-std::string Parse::getVersion() const { return version; }
-std::string Parse::getBody() const { return body; }
-std::map<std::string, std::string> Parse::getHeaders() const { return headers; }
-std::string Parse::getRawRequest() const { return raw_request; }
-bool Parse::isValid() const { return is_valid; }
-int Parse::getErrorCode() const { return error_code; }
+string Parser::get_Path() const { return path; }
+string Parser::get_Version() const { return version; }
+string Parser::get_Body() const { return body; }
+map<string, string> Parser::get_Headers() const { return headers; }
+string Parser::get_Raw_Request() const { return raw_request; }
+bool Parser::is_Valid() const { return is_valid; }
+int Parser::get_Error_Code() const { return error_code; }
 
 // parsing the first line
 
-void Parse::parseFirstLine()
+void Parser::parse_First_Line()
 {
 	if(raw_request.empty())
 	{
@@ -73,14 +73,14 @@ void Parse::parseFirstLine()
 		return ;
 	}
 	size_t pos = raw_request.find("\r\n");
-	std::string first_line = raw_request.substr(0, pos);
-	if (pos == std::string::npos)
+	string first_line = raw_request.substr(0, pos);
+	if (pos == string::npos)
 	{
 		is_valid = false;
 		error_code = 400;
 		return;
 	}
-	std::vector<std::string> parts = splitBySpace(first_line);
+	vector<string> parts = split_By_Space(first_line);
 	if(parts.size() != 3) 
 	{
 		is_valid = false;
@@ -90,13 +90,13 @@ void Parse::parseFirstLine()
 	method = parts[0];
 	path = parts[1];
 	version = parts[2];
-	if(!validateMethod()) 
+	if(!validate_Method()) 
 	{
 		is_valid = false;
 		error_code = 405;
 		return;
 	}
-	if(!validateVersion()) 
+	if(!validate_Version()) 
 	{
 		is_valid = false;
 		error_code = 400;
@@ -106,23 +106,23 @@ void Parse::parseFirstLine()
 	error_code = 0;
 }
 	
-bool Parse::validateMethod() const
+bool Parser::validate_Method() const
 {
 	if(method == "GET" || method == "POST" || method == "DELETE")
 		return(true);
 	return(false);
 }
 
-bool Parse::validateVersion() const
+bool Parser::validate_Version() const
 {
 	if(version == "HTTP/1.1" || version == "HTTP/1.0")
 		return(true);
 	return(false);
 }
 
-std::vector<std::string> Parse::splitBySpace(const std::string &line) const
+vector<string> Parser::split_By_Space(const string &line) const
 {
-	std::vector<std::string> v;
+	vector<string> v;
 	
 	int start = 0;
 	for(int i = 0; line[i]; i++)
@@ -139,26 +139,139 @@ std::vector<std::string> Parse::splitBySpace(const std::string &line) const
 	return(v);
 }
 
-//second line parsing
+//second header line parsing
 
-std::string Parse::trim(const std::string &s) const
+string Parser::trim(const string &s) const
 {
 	if(s.empty())
 		return(s);
-
 	int start = 0;
 	int end = s.size() - 1;
-	
 	while(start < s.size() && (s[start] == ' ' || s[start] == '\t'))
 		start++;
 	while(end >= start && (s[end] == ' ' || s[end] == '\t'))
-	{
 			end--;
-	}
 	if(start > end)
-		return(std::string());
+		return(string());
 	int len = end - start + 1;
 	return(s.substr(start, len));
 }
+
+
+bool Parser::is_Header_Line_Valid(const string &line) const
+{
+	if(line.empty())
+		return(false);
+	size_t pos = line.find(":");
+	if (pos == string::npos || pos == 0)
+		return(false);
+	string s = line.substr(0, pos);
+	if(trim(s).empty())
+		return(false);
+	return(true);
+}
+
+
+pair<string, string> Parser::split_Header(const string &line) const
+{
+	size_t pos = line.find(":");
+	string key_raw = line.substr(0, pos);
+	string value_raw = line.substr(pos + 1, line.size() - (pos + 1));
+	string key = trim(key_raw);
+	string value = trim(value_raw);
+	return (make_pair(key, value));
+
+}
+
+
+vector<string> Parser::split_Lines(const string &block) const
+{
+	vector<string> lines;
+	size_t start = 0;
+	while (start < block.size())
+	{
+		size_t pos = block.find("\r\n", start);
+		if (pos == string::npos)
+		{
+			lines.push_back(block.substr(start, block.size() - start));
+			break;
+		}
+		lines.push_back(block.substr(start, pos - start));
+		start = pos + 2;
+	}
+	return(lines);
+}
+
+
+string Parser::extract_Headers_Block() const
+{
+	if(raw_request.empty())
+		return(string());
+	size_t pos = raw_request.find("\r\n");
+	if (pos == string::npos)
+		return(string());
+	size_t headers_start = pos + 2;
+	size_t po = raw_request.find("\r\n\r\n", headers_start);
+	if (po == string::npos)
+		return(string());
+	string headers_block = substr(raw_request, headers_start, po - headers_start);
+	return(headers_block);
+}
+
+bool Parser::has_Required_Headers() const
+{
+	if(headers.empty())
+		return(false);
+	map<string, string>::const_iterator it = headers.find("host");
+	if (it == headers.end())
+		return false;
+	if (it->second.empty())
+		return false;
+	return(true);
+}
+
+void Parser::parse_Headers()
+{
+	headers.clear();
+	string headers_block = extract_Headers_Block();
+	if(headers_block.empty())
+	{
+		is_valid = false;
+		error_code = 400;
+		return;
+	}
+	string::lines = split_Lines(headers_block);
+	for (size_t i = 0; i < lines.size(); i++)
+	{
+		if(!is_Header_Line_Valid(lines[i]))
+		{
+			is_valid = false;
+			error_code = 400;
+			return;
+		}
+		std::pair<std::string, std::string> kv = split_Header(lines[i]);
+		std::string key = toLower(kv.first);
+		headers[key] = kv.second;
+	}
+	if(!has_Required_Headers())
+	{
+		is_valid = false;
+		error_code = 400;
+		return;
+	}
+	is_valid = true;
+	error_code = 0;
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
