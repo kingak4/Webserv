@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <vector>
+#include <sstream>
 #include <cerrno>
 
 using namespace std;
@@ -26,7 +27,7 @@ int main()
     serverAddress.sin_port = htons(8080);
     serverAddress.sin_addr.s_addr = INADDR_ANY;
     // creating socket
-    int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    int serverSocket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 	int opt = 1;
 	if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
 	{
@@ -34,9 +35,10 @@ int main()
 		throw std::runtime_error("setsockopt error(SO_REUSEADDR)");
 	}
 
-	int status = fcntl(serverSocket, F_SETFL, fcntl(serverSocket, F_GETFL, 0) | O_NONBLOCK);
+	/*int status = fcntl(serverSocket, F_SETFL, fcntl(serverSocket, F_GETFL, 0) | O_NONBLOCK);
 	if (status == -1)
 		std::cerr << "fcntl error\n";
+	*/
 	event.data.fd = serverSocket;
 
     // binding socket.
@@ -85,14 +87,23 @@ int main()
 			}
 			else
 			{
-				char buffer[1024] = { 0 };
+				char buffer[120] = { 0 };
+				std::stringstream entire_request;
 				while (true)
 				{
 					ssize_t count = read(events[i].data.fd, buffer, sizeof(buffer));
 					if (count == -1)
 					{
-						if (errno != EAGAIN)
-							break;
+						/* 1. call REQUEST_PARSER with entire_request.str() as parameter
+						 *it should return string to respond to the client.*/
+
+						/*2. Before write I should change flag of the socket
+						 *and then write to the client socket*/
+
+						//write(events[i].data.fd, respond.c_str(), respond.length());
+						
+						//close(events[i].data.fd);
+						break;
 					}
 					else if (count == 0)
 					{
@@ -100,10 +111,10 @@ int main()
 						close(events[i].data.fd);
 						break;
 					}
-					std::cout << "Message from client is: " << buffer << std::endl;
-					std::string s = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 14\n\nWitaj, swiecie!\n";
-					write(events[i].data.fd, s.c_str(), s.length());
-					close(events[i].data.fd);
+					else
+					{
+						entire_request << buffer;
+					}
 				}
 			}
 		}
