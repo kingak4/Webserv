@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Route.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
+/*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:30 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/05 16:49:47 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/02/05 23:04:26 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,3 +21,21 @@ Route::Route(Location& loc)
 }
 
 Route::~Route() {}
+
+const string& Route::get_route_name() const
+{
+    return route_name;
+}
+
+const string& Route::get_default_html() const
+{
+    return default_html;
+}
+const vector<string>& Route::get_allowed_methods() const
+{
+    return allowed_methods;
+}
+const string& Route::get_autoindex() const
+{
+    return autoindex;
+}

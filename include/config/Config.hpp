@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Config.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
+/*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:52 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/05 16:54:58 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/02/05 22:59:59 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,12 @@ class Config {
         Config(ConfigParser config_parser);
         ~Config();
 
-        
+        const string& get_server_name() const;
+        const string& get_host() const;
+        const string& get_root_dir() const;
+        const int& get_port() const;
+        const int& get_client_max_body_size() const;
+        const map<int, string>& get_error_pages() const;
 
 };
 

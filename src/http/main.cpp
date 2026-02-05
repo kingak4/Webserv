@@ -19,21 +19,30 @@ void print_parsed_data(Config server_block, Route loc)
         cout << "error page: " <<  it->first << " " << it->second << endl;
     }
 
+    // cout << endl;
+
+    cout << "route_name: " << loc.get_route_name() << endl;
+    cout << "default_html: " << loc.get_default_html() << endl;
+    for (size_t j = 0; j < loc.get_allowed_methods().size(); ++j)
+    {
+        cout << "method: " << loc.get_allowed_methods()[j] << endl;
+    }
+    cout << "autoindex: " << loc.get_autoindex() << endl;
     cout << endl;
 
-    vector<Location> locations = test.get_locations();
-    cout << "locations.size(): " << locations.size() << endl;
-    for (size_t i = 0; i < locations.size(); ++i)
-    {
-        cout << "route_name: " << locations[i].route_name << endl;
-        cout << "default_html: " << locations[i].default_html << endl;
-        for (size_t j = 0; j < locations[i].allowed_methods.size(); ++j)
-        {
-            cout << "method: " << locations[i].allowed_methods[j] << endl;
-        }
-        cout << "autoindex: " << locations[i].autoindex << endl;
-        cout << endl;
-    }
+    // vector<Location> locations = loc.get_locations();
+    // cout << "locations.size(): " << locations.size() << endl;
+    // for (size_t i = 0; i < locations.size(); ++i)
+    // {
+    //     cout << "route_name: " << locations[i].route_name << endl;
+    //     cout << "default_html: " << locations[i].default_html << endl;
+    //     for (size_t j = 0; j < locations[i].allowed_methods.size(); ++j)
+    //     {
+    //         cout << "method: " << locations[i].allowed_methods[j] << endl;
+    //     }
+    //     cout << "autoindex: " << locations[i].autoindex << endl;
+    //     cout << endl;
+    // }
 }
 
 int main()
@@ -45,11 +54,12 @@ int main()
 
     Config server_block(config_parser);
 
-    vector<Location> loc = config_parser.get_locations();
-    Route loc(loc[0]);
-    Route loc(loc[1]);
+    vector<Location> location = config_parser.get_locations();
+    // loop to find necessary route
+    Route loc1(location[0]);
+    Route loc2(location[1]);
 
-    print_parsed_data(server_block, loc); // for testing
+    print_parsed_data(server_block, loc1); // for testing
 
     return 0;
 }
