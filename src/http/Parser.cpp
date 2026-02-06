@@ -25,16 +25,11 @@ Parser::Parser()
 	error_code = 0;
 }
 
-Parser::Parser(const string &request)
+Parser::Parser(const string &request) : Parser()
 {
 	raw_request = request;
-	method = "";
-	path = "";
-	version = "";
-	body = "";
-	is_valid = false;
-	error_code = 0;
 }
+
 Parser::Parser(const Parser &other)
 {
 	if(this != &other)
@@ -70,7 +65,7 @@ void Parser::parse_First_Line()
 	if(raw_request.empty())
 	{
 		is_valid = false;
-		 error_code = 400;
+		error_code = 400;
 		return ;
 	}
 	size_t pos = raw_request.find("\r\n");
@@ -342,7 +337,155 @@ void Parser::parse_Body()
 	error_code = 0;
 }
 
+// chunked body parsing 
+
+int Parser::hex_To_Int(const std::string &hex)
+{
+	if(hex.empty())
+		return(-1);
+	int value = 0;
+	size_t i = 0;
+	int digit_value = -1;
+	while(hex[i])
+	{
+		if(hex[i] >= '0' && hex[i] <= '9')
+			 digit_value = hex[i] - '0';
+		else if((hex[i] >= 'A' && hex[i] <= 'F'))
+				 digit_value = hex[i] - 'A' + 10;
+		else if((hex[i] >= 'a' && hex[i] <= 'f'))
+				 digit_value = hex[i] - 'a' + 10;
+		else
+			return(-1);
+		i++;
+		value = value * 16 + digit_value;
+	}
+	return(value);
+}
+
+std::string Parser::toLower(const std::string &s)
+{
+	std::string result = s;
+	for(size_t i = 0; i < result.size(); i++)
+		result[i] = std::tolower(result[i]);
+	return result;
+}
+
+bool Parser::is_Chunked()
+{
+	if(headers.empty())
+		return(false);
+	map<string, string>::const_iterator it = headers.find("transfer-encoding");
+	if (it == headers.end())
+		return false;
+	string s = toLower(trim(it->second));
+	if(s == "chunked")
+		return(true);
+	return(false);
+}
+
+std::string Parser::extract_Chunked_Body()
+{
+	if(raw_request.empty())
+		return(string());
+	size_t body_start = raw_request.find("\r\n\r\n");
+	if (body_start == string::npos)
+		return(string());
+	body_start += 4;
+	string body_result = string();
+	while(true)
+	{
+		size_t line_end = raw_request.find("\r\n", body_start);
+		if(line_end == string::npos)
+		{
+			is_valid = false;
+			error_code = 400;
+			return(string());
+		}
+		string chunk_size_s = raw_request.substr(body_start, line_end - body_start);
+		chunk_size_s = trim(chunk_size_s);
+		int chunk_size = hex_To_Int(chunk_size_s);
+		if(chunk_size < 0)
+		{
+			is_valid = false;
+			error_code = 400;
+			return(string());
+		}
+		if(chunk_size == 0)
+			break;
+		body_start = line_end + 2;
+		if(body_start + chunk_size > raw_request.size())
+		{
+			is_valid = false;
+			error_code = 400;
+			return(string());
+		}
+		string chunk_data = raw_request.substr(body_start, chunk_size);
+		body_result += chunk_data;
+		body_start += chunk_size + 2;
+	}
+	return(body_result);
+}
 
 
+bool Parser::validate_Chunks(const std::string &raw)
+{
+	if(raw.empty())
+		return(true);
+	size_t offset = 0;
+
+	while(true)
+	{
+		size_t line_end = raw.find("\r\n", offset);
+		if(line_end == string::npos)
+		{
+			is_valid = false;
+			error_code = 400;
+			return(false);
+		}
+		string chunk_size_s = raw.substr(offset, line_end - offset);
+		chunk_size_s = trim(chunk_size_s);
+		int chunk_size = hex_To_Int(chunk_size_s);
+		if(chunk_size < 0)
+		{
+			is_valid = false;
+			error_code = 400;
+			return(false);
+		}
+		if(chunk_size == 0)
+			break;
+		offset = line_end + 2;
+		if(offset + chunk_size > raw.size())
+		{
+			is_valid = false;
+			error_code = 400;
+			return(false);
+		}
+		offset += chunk_size + 2;
+	}
+	return(true);
+}
 
 
+void Parser::parse_Chunked_Body()
+{
+	if(raw_request.empty())
+	{
+		body = "";
+		is_valid = true;
+		error_code = 0;
+		return;
+	}
+	if(is_Chunked() == false)
+		return;
+	if(validate_Chunks(raw_request) ==false)
+	{
+		is_valid = false;
+		error_code = 400;
+		return;
+	}
+	body = extract_Chunked_Body();
+	is_valid = true;
+	error_code = 0;
+}
+
+// need to test this 

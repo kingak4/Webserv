@@ -66,6 +66,13 @@ class Parser
 		string extract_Body_Block();
 		bool validate_Body_Length();
 		void parse_Body();
+		// chunked body parsing 
+		int hex_To_Int(const std::string &hex);
+		std::string toLower(const std::string &s);
+		bool is_Chunked();
+		std::string extract_Chunked_Body();
+		bool validate_Chunks(const std::string &raw);
+		void parse_Chunked_Body();
 };
 			
 
