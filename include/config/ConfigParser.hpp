@@ -6,7 +6,7 @@
 /*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:57 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/05 15:02:35 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/02/06 12:12:51 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,8 @@
 #include <fstream>
 #include <map>
 #include <vector>
+#include <cstdlib>
+#include <limits.h>
 
 using namespace std;
 
@@ -50,6 +52,7 @@ class ConfigParser
         void parse_server_block(string line);
         void parse_route_block(string line, Location& loc);
         void parse_config_file(string& filename);
+        string get_absolute_path_to_dict(string root);
 
         const string& get_server_name() const;
         const string& get_host() const;

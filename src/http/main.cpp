@@ -3,7 +3,7 @@
 #include "../../include/config/Route.hpp"
 
 // helper
-void print_parsed_data(Config server_block, Route loc)
+void print_parsed_data(Config server_block, vector<Route> routes)
 {
     cout << "server_name: " << server_block.get_server_name() << endl;
     cout << "port: " << server_block.get_port() << endl;
@@ -15,51 +15,48 @@ void print_parsed_data(Config server_block, Route loc)
 
     map<int, string>::const_iterator it;
     for (it = error_pages.begin(); it != error_pages.end(); ++it)
-    {
         cout << "error page: " <<  it->first << " " << it->second << endl;
-    }
 
-    // cout << endl;
-
-    cout << "route_name: " << loc.get_route_name() << endl;
-    cout << "default_html: " << loc.get_default_html() << endl;
-    for (size_t j = 0; j < loc.get_allowed_methods().size(); ++j)
-    {
-        cout << "method: " << loc.get_allowed_methods()[j] << endl;
-    }
-    cout << "autoindex: " << loc.get_autoindex() << endl;
     cout << endl;
 
-    // vector<Location> locations = loc.get_locations();
-    // cout << "locations.size(): " << locations.size() << endl;
-    // for (size_t i = 0; i < locations.size(); ++i)
-    // {
-    //     cout << "route_name: " << locations[i].route_name << endl;
-    //     cout << "default_html: " << locations[i].default_html << endl;
-    //     for (size_t j = 0; j < locations[i].allowed_methods.size(); ++j)
-    //     {
-    //         cout << "method: " << locations[i].allowed_methods[j] << endl;
-    //     }
-    //     cout << "autoindex: " << locations[i].autoindex << endl;
-    //     cout << endl;
-    // }
+    cout << "routes.size(): " << routes.size() << endl;
+    for (size_t i = 0; i < routes.size(); ++i)
+    {
+        cout << "route_name: " << routes[i].get_route_name() << endl;
+        cout << "default_html: " << routes[i].get_default_html() << endl;
+        for (size_t j = 0; j < routes[i].get_allowed_methods().size(); ++j)
+        {
+            cout << "method: " << routes[i].get_allowed_methods()[j] << endl;
+        }
+        cout << "autoindex: " << routes[i].get_autoindex() << endl;
+        cout << endl;
+    }
 }
 
-int main()
+int main(int ac, char** av)
 {
     ConfigParser config_parser;
 
+
     string filename = "config/default.conf";
-    config_parser.parse_config_file(filename); // default config file
+    if (ac == 1)
+        config_parser.parse_config_file(filename); // default config file
+    else if (ac == 2)
+    {
+        string param(av[1]);
+        config_parser.parse_config_file(param);
+    }
+    // else
+        // trow exception
 
-    Config server_block(config_parser);
+    Config server_block(config_parser); // get server block
 
-    vector<Location> location = config_parser.get_locations();
-    // loop to find necessary route
-    Route loc1(location[0]);
-    Route loc2(location[1]);
+    vector<Location> locations = config_parser.get_locations(); // get vectore of location blocks
+    vector<Route> routes; // store each location into Route object and push all the Route objects into vactore<Route routes>
+    for (size_t i  = 0; i < locations.size(); ++i) // iterate over vector<Route> routes
+        routes.push_back(locations[i]);
 
-    print_parsed_data(server_block, loc1); // for testing
+    print_parsed_data(server_block, routes); // for testing
 
     return 0;
 }

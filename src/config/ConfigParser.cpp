@@ -6,7 +6,7 @@
 /*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:23 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/05 14:32:12 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/02/06 12:14:04 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ void ConfigParser::parse_server_block(string line)
                 ss >> client_max_body_size;
             }
             else if (server_keywords[i] == "root")
-                root_dir = temp_line;
+                root_dir = get_absolute_path_to_dict(temp_line);
             else if (server_keywords[i] == "error_page")
             {
                 lline = parse_line(line);
@@ -134,6 +134,17 @@ string ConfigParser::trim_str(string temp_str)
     end_idx = temp_str.find_last_not_of(" {;\t\n\r");
 
     return temp_str.substr(start_idx, end_idx - start_idx + 1);    
+}
+
+string ConfigParser::get_absolute_path_to_dict(string root) {
+    char abs_path[PATH_MAX];
+
+    if (realpath(root.c_str(), abs_path) != NULL)
+    {
+        string root_path(abs_path);
+        return root_path;    
+    }
+    return NULL;
 }
 
 const string& ConfigParser::get_server_name() const {
