@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Parser.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kikwasni <kikwasni@student.42.fr>          +#+  +:+       +#+        */
+/*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/03 11:25:19 by kikwasni          #+#    #+#             */
-/*   Updated: 2026/02/03 12:37:52 by kikwasni         ###   ########.fr       */
+/*   Updated: 2026/02/06 13:16:37 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@
 # include <vector>
 # include <string>
 
-class Parse
+class Parser
 {
 	private:
 			std::string raw_request;
@@ -31,7 +31,9 @@ class Parse
 			std::string body;
 			bool is_valid;
 	public:
-		Parse();
+		Parser();
+
+		string get_Path() const;
 		
 };
 			

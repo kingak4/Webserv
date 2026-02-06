@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Route.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
+/*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:13:02 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/05 23:03:56 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/06 13:33:58 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <map>
 #include <vector>
 #include "ConfigParser.hpp"
+#include "../http/Parser.hpp"
 
 using namespace std;
 
@@ -29,8 +30,11 @@ class Route
     string autoindex;
 
     public:
+        Route();
         Route(Location& loc);
         ~Route();
+
+        bool is_valid_request(Parser request);
 
         const string& get_route_name() const;
         const string& get_default_html() const;

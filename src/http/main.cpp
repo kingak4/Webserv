@@ -1,6 +1,7 @@
 #include "../../include/config/ConfigParser.hpp"
 #include "../../include/config/Config.hpp"
 #include "../../include/config/Route.hpp"
+#include "../../include/http/Parser.hpp"
 
 // helper
 void print_parsed_data(Config server_block, vector<Route> routes)
@@ -33,9 +34,21 @@ void print_parsed_data(Config server_block, vector<Route> routes)
     }
 }
 
+Route get_route_block(ConfigParser config_parser, Parser request)
+{
+    vector<Location> locations = config_parser.get_locations(); // get vectore of location blocks
+    // WHEN I GET A ROUTE FROM PARSER, I NEED TO VALIDATE DATA FROM THIS REQUEST WITH CONFIG FILE RULES FOR THIS ROUTE
+    for (size_t i = 0; i < locations.size(); ++i) // iterate over vector<Route> routes
+    {
+        if (locations[i].route_name == request.get_Path())
+            return Route(locations[i]);
+    }
+}
+
 int main(int ac, char** av)
 {
     ConfigParser config_parser;
+    Parser request;
 
 
     string filename = "config/default.conf";
@@ -49,14 +62,19 @@ int main(int ac, char** av)
     // else
         // trow exception
 
-    Config server_block(config_parser); // get server block
+    // GET ROUTE BLOCK
+    Config server_block(config_parser);
 
-    vector<Location> locations = config_parser.get_locations(); // get vectore of location blocks
-    vector<Route> routes; // store each location into Route object and push all the Route objects into vactore<Route routes>
-    for (size_t i  = 0; i < locations.size(); ++i) // iterate over vector<Route> routes
-        routes.push_back(locations[i]);
+    // GET ROUTE BLOCK
+    Route route_block = get_route_block(config_parser, request);
 
-    print_parsed_data(server_block, routes); // for testing
+    // FOR TESTING
+    // vector<Route> routes; // store each location into Route object and push all the Route objects into vactore<Route routes>
+    // for (size_t i = 0; i < locations.size(); ++i) // iterate over vector<Route> routes
+    // {
+    //     routes.push_back(Route(locations[i]));
+    // }
+    // print_parsed_data(server_block, routes);
 
     return 0;
 }
