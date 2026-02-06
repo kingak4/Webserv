@@ -266,13 +266,81 @@ void Parser::parse_Headers()
 	error_code = 0;
 }
 
+// body parsing 
 
+int Parser::get_Content_Length()
+{
+	if(headers.empty())
+		return(false);
+	map<string, string>::const_iterator it = headers.find("content-length");
+	if (it == headers.end())
+		return (0);
+	string s = it->second;
+	if(s.empty())
+	{
+		is_valid = false;
+		error_code = 400;
+		return(0);
+	}
+	char *end;
+	errno = 0;
+	long len = std::strtol(s.c_str(), &end, 10);
+	if (*end != '\0')
+	{
+		is_valid = false;
+		error_code = 400;
+		return(0);
+	}
+	if (errno != 0 || len <= 0 || len > 2147483647)
+	{
+		is_valid = false;
+		error_code = 400;
+		return(0);
+	}
+	return(len);
+}
 
+string Parser::extract_Body_Block() 
+{
+	if(raw_request.empty())
+		return(string());
+	size_t pos = raw_request.find("\r\n\r\n");
+	if (pos == string::npos)
+		return(string());
+	size_t body_start = pos + 4;
+	map<string, string>::const_iterator it =  headers.find("content-length");
+	if (it != headers.end())
+	{
+		int len = get_Content_Length();
+		size_t body_end = body_start + len;
+		if(body_end > raw_request.size())
+			body_end  = raw_request.size();
+		 return(raw_request.substr(body_start, body_end - body_start));
+	}
+	return raw_request.substr(body_start);
+}
 
+bool Parser::validate_Body_Length()
+{
+	string body = extract_Body_Block();
+	int len = get_Content_Length();
+	if(body.size() != static_cast<size_t>(len))
+		return(false);
+	return(true);
+}
 
-
-
-
+void Parser::parse_Body()
+{
+	body = extract_Body_Block();
+	if(validate_Body_Length() == false)
+	{
+		is_valid = false;
+		error_code = 400;
+		return;
+	}
+	is_valid = true;
+	error_code = 0;
+}
 
 
 

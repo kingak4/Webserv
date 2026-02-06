@@ -93,3 +93,84 @@
 //     std::cout << "is_valid: " << p4.is_Valid() << "\n";
 //     std::cout << "error_code: " << p4.get_Error_Code() << "\n";
 // }
+
+// body tests 
+
+// int main()
+// {
+//     // ===== TEST 1: Brak body, brak Content-Length =====
+//     std::string request1 =
+//         "GET /hello HTTP/1.1\r\n"
+//         "Host: localhost\r\n"
+//         "\r\n";
+
+//     Parser p1(request1);
+//     p1.parse_First_Line();
+//     p1.parse_Headers();
+//     p1.parse_Body();
+
+//     std::cout << "=== BODY TEST 1: brak body ===\n";
+//     std::cout << "is_valid: " << p1.is_Valid() << "\n";
+//     std::cout << "error_code: " << p1.get_Error_Code() << "\n";
+//     std::cout << "body: \"" << p1.get_Body() << "\"\n";
+//     std::cout << "body length: " << p1.get_Body().size() << "\n\n";
+
+//     // ===== TEST 2: Body zgodne z Content-Length =====
+//     std::string request2 =
+//         "POST /submit HTTP/1.1\r\n"
+//         "Host: localhost\r\n"
+//         "Content-Length: 5\r\n"
+//         "\r\n"
+//         "hello";
+
+//     Parser p2(request2);
+//     p2.parse_First_Line();
+//     p2.parse_Headers();
+//     p2.parse_Body();
+
+//     std::cout << "=== BODY TEST 2: poprawne body ===\n";
+//     std::cout << "is_valid: " << p2.is_Valid() << "\n";
+//     std::cout << "error_code: " << p2.get_Error_Code() << "\n";
+//     std::cout << "body: \"" << p2.get_Body() << "\"\n";
+//     std::cout << "body length: " << p2.get_Body().size() << "\n\n";
+
+//     // ===== TEST 3: Body krótsze niż Content-Length =====
+//     std::string request3 =
+//         "POST /submit HTTP/1.1\r\n"
+//         "Host: localhost\r\n"
+//         "Content-Length: 10\r\n"
+//         "\r\n"
+//         "short";
+
+//     Parser p3(request3);
+//     p3.parse_First_Line();
+//     p3.parse_Headers();
+//     p3.parse_Body();
+
+//     std::cout << "=== BODY TEST 3: body za krótkie ===\n";
+//     std::cout << "is_valid: " << p3.is_Valid() << "\n";
+//     std::cout << "error_code: " << p3.get_Error_Code() << "\n";
+//     std::cout << "body: \"" << p3.get_Body() << "\"\n";
+//     std::cout << "body length: " << p3.get_Body().size() << "\n\n";
+
+//     // ===== TEST 4: Body dłuższe niż Content-Length =====
+//     std::string request4 =
+//         "POST /submit HTTP/1.1\r\n"
+//         "Host: localhost\r\n"
+//         "Content-Length: 3\r\n"
+//         "\r\n"
+//         "toolong";
+
+//     Parser p4(request4);
+//     p4.parse_First_Line();
+//     p4.parse_Headers();
+//     p4.parse_Body();
+
+//     std::cout << "=== BODY TEST 4: body za długie ===\n";
+//     std::cout << "is_valid: " << p4.is_Valid() << "\n";
+//     std::cout << "error_code: " << p4.get_Error_Code() << "\n";
+//     std::cout << "body: \"" << p4.get_Body() << "\"\n";
+//     std::cout << "body length: " << p4.get_Body().size() << "\n\n";
+
+//     return 0;
+// }

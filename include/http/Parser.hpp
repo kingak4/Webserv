@@ -20,6 +20,7 @@
 # include <sstream>
 # include <string>
 # include <vector>
+# include <cstdlib>
 
 using namespace std;
 
@@ -60,6 +61,11 @@ class Parser
 		string extract_Headers_Block() const;
 		bool has_Required_Headers() const;
 		void parse_Headers();
+		// body parsing 
+		int get_Content_Length();
+		string extract_Body_Block();
+		bool validate_Body_Length();
+		void parse_Body();
 };
 			
 
