@@ -6,7 +6,7 @@
 /*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:30 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/06 14:52:42 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/02/06 15:00:45 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,7 @@ bool Route::is_valid_request(Parser request)
     // - Host header → must match server_name.
     // - Required headers for CGI or special routes.
     // - Optional: check for forbidden headers or custom rules.
+    return true;
 }
 
 const string& Route::get_route_name() const
