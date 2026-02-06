@@ -12,50 +12,69 @@
 #include <vector>
 #include <sstream>
 #include <cerrno>
+#include "Server.hpp"
 
 using namespace std;
 
-int main()
-{
-	int epoll_fd = epoll_create1(0);
-	struct epoll_event event, events[10];
-	event.events = EPOLLIN | EPOLLOUT | EPOLLET;
 
-    // specifying the address
+Server::Server(int port) : port(port) {  }
+Server::~Server(void) {  }
+
+int const Server::get_socket(void) {return socket_fd;}
+int const Server::get_epoll_fd(void) {return epoll_fd;}
+struct epoll_event Server::get_server_event(void) {return event;}
+struct epoll_event Server::get_active_event(int index) {return active_events[index];} 
+
+void Server::server_init(void)
+{
+	int server_epoll_fd = epoll_create(10);
+	this->epoll_fd = server_epoll_fd;
+
+	this->event.events = EPOLLIN | EPOLLOUT | EPOLLET;
+
     sockaddr_in serverAddress;
     serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(8080);
+    serverAddress.sin_port = htons(this->get_port());
     serverAddress.sin_addr.s_addr = INADDR_ANY;
-    // creating socket
-    int serverSocket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+
+    int serv_socket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+	this->socket_fd = serv_socket;
+
 	int opt = 1;
-	if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+	if (setsockopt(serv_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
 	{
-		close(serverSocket);
+		close(serv_socket);
 		throw std::runtime_error("setsockopt error(SO_REUSEADDR)");
 	}
 
-	/*int status = fcntl(serverSocket, F_SETFL, fcntl(serverSocket, F_GETFL, 0) | O_NONBLOCK);
-	if (status == -1)
-		std::cerr << "fcntl error\n";
-	*/
-	event.data.fd = serverSocket;
+	this->event.data.fd = serv_socket;
 
-    // binding socket.
-    if (bind(serverSocket, (struct sockaddr*)&serverAddress,
-         sizeof(serverAddress)) == -1)
+    if (bind(serv_socket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) == -1)
 	{
-		close(serverSocket);
-		close(epoll_fd);
+		close(serv_socket);
+		close(server_epoll_fd);
 		throw std::runtime_error("binding error");
 	}
-	// listening to the assigned socket
-	listen(serverSocket, 5);
 
-	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, serverSocket, &event))
+	listen(serv_socket, 5);
+
+	if (epoll_ctl(server_epoll_fd, EPOLL_CTL_ADD, serv_socket, &event))
 	{
-		throw std::runtime_error("epoll_ctl: ADD");
+		std::stringstream ss;
+		ss << errno;
+		throw std::runtime_error(ss.str() + ": epoll_ctl: ADD");
 	}
+}
+
+int main()
+{
+
+    // specifying the address
+    // creating socket
+
+
+    // binding socket.
+	// listening to the assigned socket
 	
 	while (true)
 	{
@@ -121,6 +140,7 @@ int main()
 	}
 
     // closing the socket.
+	close(epoll_fd);
     close(serverSocket);
 
     return 0;
