@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigParser.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
+/*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:57 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/06 12:12:51 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/02/09 12:49:24 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ using namespace std;
 struct Location
 {
     string route_name;
-    string default_html;
+    string url;
     vector<string> allowed_methods;
     string autoindex;
 };

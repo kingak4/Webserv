@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigParser.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
+/*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:23 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/06 12:14:04 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/02/09 13:50:40 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,9 @@ void ConfigParser::parse_route_block(string line, Location& loc)
     if ((pos = line.find("location")) != string::npos)
         loc.route_name = trim_str(line.substr(pos + string("location").length()));
     else if ((pos = line.find("default")) != string::npos)
-        loc.default_html = trim_str(line.substr(pos + string("default").length()));
+        loc.url = trim_str(line.substr(pos + string("default").length()));
+    else if ((pos = line.find("cgi") != string::npos))
+        loc.url = trim_str(line.substr(pos + string("cgi").length()));
     else if ((pos = line.find("allowed_methods")) != string::npos)
         loc.allowed_methods.push_back(trim_str(line.substr(pos + string("allowed_methods").length()))); 
     else if ((pos = line.find("autoindex")) != string::npos)
@@ -136,13 +138,14 @@ string ConfigParser::trim_str(string temp_str)
     return temp_str.substr(start_idx, end_idx - start_idx + 1);    
 }
 
+// TODO: CHECK IF ROOT IS DIRECTORY FIRST
 string ConfigParser::get_absolute_path_to_dict(string root) {
     char abs_path[PATH_MAX];
 
     if (realpath(root.c_str(), abs_path) != NULL)
     {
         string root_path(abs_path);
-        return root_path;    
+        return root_path;
     }
     return NULL;
 }

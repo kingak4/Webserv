@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Route.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
+/*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:13:02 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/06 13:33:58 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/02/09 17:47:48 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,26 +18,57 @@
 #include <map>
 #include <vector>
 #include "ConfigParser.hpp"
+#include "Config.hpp"
 #include "../http/Parser.hpp"
+#include <sys/stat.h>
 
 using namespace std;
 
+enum FsType
+{
+    FS_NOT_FOUND,
+    FS_IS_FILE,
+    FS_IS_DIR
+}
+
 class Route 
 {
+    Config &server;
+
+    // location data
     string route_name;
-    string default_html;
+    string url;
     vector<string> allowed_methods;
     string autoindex;
 
+    string filesystem_path;
+
+    // request data
+    string request_method;
+    string request_full_path;
+    string request_path;
+    string request-query;
+    string request_version;
+    // map<string, string> headers;
+
     public:
         Route();
-        Route(Location& loc);
+        Route(Location& loc, Parser request);
         ~Route();
 
-        bool is_valid_request(Parser request);
+        string retrieve_request_path(string request_full_path);
+        string retrieve_request_query(string request_full_path);
+        
+        // VALIDATION CHECKS
+        bool is_valid_request_path();
+        bool is_allowed_method();
+        bool is_cgi();
+        FsType get_filesystem_type();
+        bool is_valid_request();
 
+        // GETTERS
         const string& get_route_name() const;
-        const string& get_default_html() const;
+        const string& get_url() const;
         const vector<string>& get_allowed_methods() const;
         const string& get_autoindex() const;
 };

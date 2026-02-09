@@ -6,7 +6,7 @@
 /*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:52 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/05 22:59:59 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/09 14:08:23 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <map>
 #include <vector>
 #include "ConfigParser.hpp"
+#include "../http/Parser.hpp"
 
 using namespace std;
 
@@ -29,10 +30,15 @@ class Config {
     string root_dir;
     map<int, string> error_pages;
 
+    // request data
+    string request_body;
+    
     public:
-        Config(ConfigParser config_parser);
+        Config(ConfigParser config_parser, Parser request);
         ~Config();
 
+        bool does_body_match_size();
+        
         const string& get_server_name() const;
         const string& get_host() const;
         const string& get_root_dir() const;
