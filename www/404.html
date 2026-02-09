@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Error 404</title>
+        <meta charset="utf-8">
+        <style>
+            body {
+                margin: 0;
+            }
+            .error-block {
+                position: reltive;
+                width: 100vw;
+                height: 100vh;
+            }
+            .error-text {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                text-align: center;
+                color: rgb(0, 0, 0);
+                text-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+            }
+            .error {
+                font-family: "Montserrat", sans-serif;
+                font-weight: 800;
+                font-size: clamp(4rem, 12vw, 10rem);
+                margin: 0;
+            }
+            .explain {
+                font-family: "Montserrat", sans-serif;
+                font-weight: 400;
+                font-size: clamp(1.5rem, 4vw, 3rem);
+                margin: 0;
+                margin-top: 0.5em;
+            }
+        </style>
+    </head>
+        <body>
+            <div class="error-block">
+                <div class="error-text">
+                    <h1 class="error">404</h1>
+                    <h2 class="explain">Page not found</h2>
+                </div>
+            </div>
+        </body>
+</html>
