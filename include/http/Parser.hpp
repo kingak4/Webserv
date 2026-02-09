@@ -71,8 +71,10 @@ class Parser
 		std::string toLower(const std::string &s);
 		bool is_Chunked();
 		std::string extract_Chunked_Body();
-		bool validate_Chunks(const std::string &raw);
+		bool validate_Chunks();
 		void parse_Chunked_Body();
+		// final function 
+		void parse_Request();
 };
 			
 

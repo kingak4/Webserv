@@ -25,9 +25,16 @@ Parser::Parser()
 	error_code = 0;
 }
 
-Parser::Parser(const string &request) : Parser()
+Parser::Parser(const string &request) 
 {
 	raw_request = request;
+	method = "";
+	path = "";
+	version = "";
+	body = "";
+	headers.clear();
+	is_valid = false;
+	error_code = 0;
 }
 
 Parser::Parser(const Parser &other)
@@ -179,7 +186,6 @@ pair<string, string> Parser::split_Header(const string &line) const
 
 }
 
-
 vector<string> Parser::split_Lines(const string &block) const
 {
 	vector<string> lines;
@@ -307,10 +313,14 @@ string Parser::extract_Body_Block()
 	if (it != headers.end())
 	{
 		int len = get_Content_Length();
-		size_t body_end = body_start + len;
-		if(body_end > raw_request.size())
-			body_end  = raw_request.size();
-		 return(raw_request.substr(body_start, body_end - body_start));
+		size_t available = raw_request.size() - body_start;
+		if(static_cast<size_t>(len) != available)
+		{
+			is_valid = false;
+			error_code = 400;
+			return "";
+		}
+		return raw_request.substr(body_start, len);
 	}
 	return raw_request.substr(body_start);
 }
@@ -427,42 +437,43 @@ std::string Parser::extract_Chunked_Body()
 }
 
 
-bool Parser::validate_Chunks(const std::string &raw)
+bool Parser::validate_Chunks()
 {
-	if(raw.empty())
-		return(true);
+	size_t body_start = raw_request.find("\r\n\r\n");
+	if(body_start == string::npos)
+		return false;
+	body_start += 4;
+	string body_only = raw_request.substr(body_start);
 	size_t offset = 0;
-
 	while(true)
 	{
-		size_t line_end = raw.find("\r\n", offset);
+		size_t line_end = body_only.find("\r\n", offset);
 		if(line_end == string::npos)
 		{
 			is_valid = false;
 			error_code = 400;
-			return(false);
+			return false;
 		}
-		string chunk_size_s = raw.substr(offset, line_end - offset);
-		chunk_size_s = trim(chunk_size_s);
+		string chunk_size_s = trim(body_only.substr(offset, line_end - offset));
 		int chunk_size = hex_To_Int(chunk_size_s);
 		if(chunk_size < 0)
 		{
 			is_valid = false;
 			error_code = 400;
-			return(false);
+			return false;
 		}
 		if(chunk_size == 0)
 			break;
 		offset = line_end + 2;
-		if(offset + chunk_size > raw.size())
+		if(offset + chunk_size > body_only.size())
 		{
 			is_valid = false;
 			error_code = 400;
-			return(false);
+			return false;
 		}
 		offset += chunk_size + 2;
 	}
-	return(true);
+	return true;
 }
 
 
@@ -477,7 +488,7 @@ void Parser::parse_Chunked_Body()
 	}
 	if(is_Chunked() == false)
 		return;
-	if(validate_Chunks(raw_request) ==false)
+	if(validate_Chunks() ==false)
 	{
 		is_valid = false;
 		error_code = 400;
@@ -488,4 +499,49 @@ void Parser::parse_Chunked_Body()
 	error_code = 0;
 }
 
-// need to test this 
+// final function 
+
+void Parser::parse_Request()
+{
+	method = "";
+	path = "";
+	version = "";
+	body = "";
+	is_valid = false;
+	error_code = 0;
+
+	parse_First_Line();
+	if(is_valid == false)
+		return;
+	parse_Headers();
+	if(is_valid == false)
+		return;
+	bool has_chunked = is_Chunked();
+	bool has_content_length = (headers.find("content-length") != headers.end());
+	if(has_chunked && has_content_length)
+	{
+		is_valid = false;
+		error_code = 400;
+		return;
+	}
+	if(method == "GET")
+	{
+		body = "";
+		is_valid = true;
+		return;
+	}
+	if(has_chunked)
+	{
+		parse_Chunked_Body();
+		return;
+	}
+	if(has_content_length)
+	{
+		parse_Body();
+		return;
+	}
+	body = "";
+	is_valid = true;
+	error_code = 0;
+}
+
