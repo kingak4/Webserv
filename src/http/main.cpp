@@ -179,6 +179,103 @@
 //     return 0;
 // }
 
+//ultimate test for all parsing
+
+// int main()
+// {
+//     // ===== TEST 1: Poprawny GET bez body =====
+//     std::string req1 = "GET /hello HTTP/1.1\r\nHost: localhost\r\n\r\n";
+//     Parser p1(req1);
+//     p1.parse_Request();
+//     std::cout << "=== TEST 1: GET bez body ===\n";
+//     std::cout << "is_valid: " << p1.is_Valid() << "\n";
+//     std::cout << "error_code: " << p1.get_Error_Code() << "\n";
+//     std::cout << "body: \"" << p1.get_Body() << "\"\n\n";
+
+//     // ===== TEST 2: Poprawny POST z Content-Length =====
+//     std::string req2 = "POST /submit HTTP/1.1\r\nHost: localhost\r\nContent-Length: 5\r\n\r\nhello";
+//     Parser p2(req2);
+//     p2.parse_Request();
+//     std::cout << "=== TEST 2: POST z poprawnym body ===\n";
+//     std::cout << "is_valid: " << p2.is_Valid() << "\n";
+//     std::cout << "error_code: " << p2.get_Error_Code() << "\n";
+//     std::cout << "body: \"" << p2.get_Body() << "\"\n\n";
+
+//     // ===== TEST 3: POST z body krótszym niż Content-Length =====
+//     std::string req3 = "POST /submit HTTP/1.1\r\nHost: localhost\r\nContent-Length: 10\r\n\r\nshort";
+//     Parser p3(req3);
+//     p3.parse_Request();
+//     std::cout << "=== TEST 3: body za krótkie ===\n";
+//     std::cout << "is_valid: " << p3.is_Valid() << "\n";
+//     std::cout << "error_code: " << p3.get_Error_Code() << "\n\n";
+
+//     // ===== TEST 4: POST z body dłuższym niż Content-Length =====
+//     std::string req4 = "POST /submit HTTP/1.1\r\nHost: localhost\r\nContent-Length: 3\r\n\r\ntoolong";
+//     Parser p4(req4);
+//     p4.parse_Request();
+//     std::cout << "=== TEST 4: body za długie ===\n";
+//     std::cout << "is_valid: " << p4.is_Valid() << "\n";
+//     std::cout << "error_code: " << p4.get_Error_Code() << "\n\n";
+
+//     // ===== TEST 5: Chunked body poprawny =====
+//     std::string req5 =
+//         "POST /upload HTTP/1.1\r\nHost: localhost\r\nTransfer-Encoding: chunked\r\n\r\n"
+//         "5\r\nhello\r\n0\r\n\r\n";
+//     Parser p5(req5);
+//     p5.parse_Request();
+//     std::cout << "=== TEST 5: poprawny chunked body ===\n";
+//     std::cout << "is_valid: " << p5.is_Valid() << "\n";
+//     std::cout << "error_code: " << p5.get_Error_Code() << "\n";
+//     std::cout << "body: \"" << p5.get_Body() << "\"\n\n";
+
+//     // ===== TEST 6: Chunked + Content-Length (błąd) =====
+//     std::string req6 =
+//         "POST /upload HTTP/1.1\r\nHost: localhost\r\nContent-Length: 5\r\nTransfer-Encoding: chunked\r\n\r\n"
+//         "5\r\nhello\r\n0\r\n\r\n";
+//     Parser p6(req6);
+//     p6.parse_Request();
+//     std::cout << "=== TEST 6: chunked + content-length (błąd) ===\n";
+//     std::cout << "is_valid: " << p6.is_Valid() << "\n";
+//     std::cout << "error_code: " << p6.get_Error_Code() << "\n\n";
+
+//     // ===== TEST 7: Brak Host (błąd) =====
+//     std::string req7 = "GET /hello HTTP/1.1\r\n\r\n";
+//     Parser p7(req7);
+//     p7.parse_Request();
+//     std::cout << "=== TEST 7: brak Host ===\n";
+//     std::cout << "is_valid: " << p7.is_Valid() << "\n";
+//     std::cout << "error_code: " << p7.get_Error_Code() << "\n\n";
+
+//     // ===== TEST 8: Niepoprawna metoda (błąd) =====
+//     std::string req8 = "PUT /update HTTP/1.1\r\nHost: localhost\r\n\r\n";
+//     Parser p8(req8);
+//     p8.parse_Request();
+//     std::cout << "=== TEST 8: niepoprawna metoda ===\n";
+//     std::cout << "is_valid: " << p8.is_Valid() << "\n";
+//     std::cout << "error_code: " << p8.get_Error_Code() << "\n\n";
+
+//     // ===== TEST 9: Niepoprawna wersja HTTP (błąd) =====
+//     std::string req9 = "GET /hello HTTP/2.0\r\nHost: localhost\r\n\r\n";
+//     Parser p9(req9);
+//     p9.parse_Request();
+//     std::cout << "=== TEST 9: niepoprawna wersja ===\n";
+//     std::cout << "is_valid: " << p9.is_Valid() << "\n";
+//     std::cout << "error_code: " << p9.get_Error_Code() << "\n\n";
+
+//     // ===== TEST 10: GET z Content-Length (body ignorowane) =====
+//     std::string req10 = "GET /hello HTTP/1.1\r\nHost: localhost\r\nContent-Length: 5\r\n\r\nhello";
+//     Parser p10(req10);
+//     p10.parse_Request();
+//     std::cout << "=== TEST 10: GET z Content-Length (body ignorowane) ===\n";
+//     std::cout << "is_valid: " << p10.is_Valid() << "\n";
+//     std::cout << "error_code: " << p10.get_Error_Code() << "\n";
+//     std::cout << "body: \"" << p10.get_Body() << "\"\n\n";
+
+//     return 0;
+// }
+
+#include "../../include/config/ConfigParser.hpp"
+
 // helper
 void print_parsed_data(Config server_block, vector<Route> routes)
 {
@@ -210,9 +307,9 @@ void print_parsed_data(Config server_block, vector<Route> routes)
     }
 }
 
-Route get_route_block(ConfigParser config_parser, Parser request)
+Route get_route_block(ConfigParser config_parser, Parser request, Config server_block)
 {
-    Route res;
+    Route res(server_block);
     vector<Location> locations = config_parser.get_locations();
 
     string route_path = request.get_Path();
@@ -221,7 +318,7 @@ Route get_route_block(ConfigParser config_parser, Parser request)
     for (size_t i = 0; i < locations.size(); ++i)
     {
         if (route_path.find(locations[i].route_name) == 0)
-            res = Route(locations[i], request);
+            return Route(locations[i], request, server_block);
     }
     return res;
 }
@@ -241,16 +338,17 @@ int main(int ac, char** av)
     // else
         // trow exception
 
-    Parser request;
+    // string req1 = "GET /index.html?user=John HTTP/1.1\r\nHost: localhost\r\n\r\n";
+    // Parser request(req1);
+    // request.parse_Request();
     // GET ROUTE BLOCK
     Config server_block(config_parser, request);
 
     // // GET ROUTE BLOCK
-    Route route_block = get_route_block(config_parser, request);
+    Route route_block = get_route_block(config_parser, request, server_block);
+    route_block.form_response();
     // CgiHandler cgi;
     // cgi.is_cgi(route_block);
-
-
 
     // FOR TESTING
     // vector<Location> locations =  config_parser.get_locations();

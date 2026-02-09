@@ -6,61 +6,80 @@
 /*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:30 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/09 17:44:50 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/09 19:28:25 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/config/Route.hpp"
 
-Route::Route() {};
+Route::Route(Config& server_block) : server(server_block) {};
 
-Route::Route(Location& loc, Parser request) 
+Route::Route(Location& loc, Parser request, Config& server_block) : server(server_block)
 {
-    (void)request;
     route_name = loc.route_name;
     url = loc.url;
     allowed_methods = loc.allowed_methods;
     autoindex = loc.autoindex;
 
-    // request_method = request.get_Method();
-    // request_path = request.get_Path();
-    // request_version = request.get_Version();
-    // request_headers = request.get_Headers();
-    request_full_path = "/uploads?something=1";
+    request_method = request.get_Method();
+    cout << "request_method: " << request_method << endl;
+    request_full_path = request.get_Path();
+    cout << "request_full_path: " << request_full_path << endl;
+    request_version = request.get_Version();
+    cout << "request_version: " << request_version << endl;
+    request_headers = request.get_Headers();
+    
+    
+    for (std::map<std::string, std::string>::iterator it = request_headers.begin();
+        it != request_headers.end(); ++it)
+    {
+        std::cout << it->first << ": " << it->second << std::endl;
+    }
 
-    request_path = retrieve_request_path(request_full_path);
-    request_query = retrieve_request_query(request_full_path);
-
-    filesystem_path = server.get_root_dir() + request_path
-    // TEST
+    request_path = trim(retrieve_request_path(request_full_path));
     cout << "request_path: " << request_path << endl;
+    request_query = retrieve_request_query(request_full_path);
     cout << "request_query: " << request_query << endl;
+
+    filesystem_path = server.get_root_dir() + "/" + request_path;
     cout << "filesystem_path: " << filesystem_path << endl;
     
-    request_method = "GET";
-    request_version = "HTTP/1.1";
+    // request_method = "GET";
+    // request_version = "HTTP/1.1";
     
 }
 
 Route::~Route() {}
 
-string Route::retrieve_request_path(string request_full_path)
+string Route::retrieve_request_path(const string& request_full_path)
 {
+    size_t pos;
+    string res;
+    
     if ((pos = request_full_path.find('?')) != string::npos)
-        return request_full_path.substr(0, pos);
+        res = request_full_path.substr(0, pos);
+    else
+        res = request_full_path;
+    return res;
 }
 
-string Route::retrieve_request_query(string request_full_path)
+string Route::retrieve_request_query(const string& request_full_path)
 {
     int len;
+    size_t pos;
+    string res;
     
     len = request_full_path.length();
     if ((pos = request_full_path.find('?')) != string::npos)
-        return request_full_path.substr(pos, len)
+        res = request_full_path.substr(pos + 1, len);
+    else
+        res = "";
+    return res;
 }
 
 bool Route::is_valid_request_path()
 {
+    cout << "url: " << url << endl;
     return request_path == url;
 }
 
@@ -82,12 +101,9 @@ bool Route::is_cgi()
     return false;
 }
 
-
-
-FsType Route::get_filesustem_type()
+FsType Route::get_filesystem_type()
 {
     struct stat buffer; // stat holds metadata about file
-    bool res;
     
     if (stat(filesystem_path.c_str(), &buffer) != 0) // buffer.st_mode contains data about file type and permissions;
         return FS_NOT_FOUND;
@@ -101,54 +117,61 @@ FsType Route::get_filesustem_type()
     return FS_NOT_FOUND;
 }
 
+string Route::trim(string str)
+{
+    size_t start_idx;
+    size_t end_idx;
+
+    start_idx = str.find_first_not_of("/");
+    end_idx = str.find_last_not_of("/");
+
+    return str.substr(start_idx, end_idx - start_idx + 1);    
+}
+
 bool Route::is_valid_request()
 {
+    FsType filesystem_status;
     bool request_path_is_valid;
     bool method_is_allowed;
-    bool url_is_cgi;
-    FsType filesystem_status;
     bool body_matches_size;
 
     // 1. SPLIT REQUEST_FULL_PATH INTO REQUEST_PATH AND REQUEST_QUERY
     
     // 2. COMPARE REQUEST_PATH AGAINS LOCATION_URL
     request_path_is_valid = is_valid_request_path();
+    cout << "request_path_is_valid: " << request_path_is_valid << endl;
     // if (!request_path_is_valid)
     // send error response
 
     // 3. CHECK ALLOWED METHODS:
     method_is_allowed = is_allowed_method();
+    cout << "method_is_allowed: " << method_is_allowed << endl;
     // if (!method_is_allowed)
     // send response with 405 ERROR
 
     // 4. BUILD THE FILESYSTEM PATH
-    
-    
-    // IS THE REQUEST TARGET CGI:
-    is_cgi();
-    // if (is_cgi)
-    // move to CgiHandler class
-    
-    // FOR STATIC FILES: DOES THE FILE EXIST:
-    filesystem_status = get_filesystem_type();
-    switch(filesystem_status)
-    {
-        case FS_NOT_FOUND:
-            // 404 ERROR
-        case FS_IS_FILE:
-            if (is_cgi())
-                // got to CgiHndler
-            else
-                // serve static file
-        case FS_IS_DIR
-            // handle autoindex
-    }
 
-    // IF THE REQUEST PATH POINTS TO A DICTIONARY, CHECK IF AUTOINDEX IS ENABLES IN THE CONFIG
+    filesystem_status = get_filesystem_type();
+    cout << "filesystem_status: " << filesystem_status << endl;
+    // switch(filesystem_status)
+    // {
+    //     case FS_NOT_FOUND:
+    //         // 404 ERROR
+    //     case FS_IS_FILE:
+    //         if (is_cgi())
+    //             // got to CgiHndler
+    //         else
+    //             // serve static file
+    //     case FS_IS_DIR
+    //         // handle autoindex
+    // }
+
+    // IF THE REQUEST PATH POINTS TO A DICTIONARY, CHECK IF AUTOINDEX IS ENABLED IN THE CONFIG
     
 
     // IF THERE'S A BODY, VERIFY ITS SIZE AGAINST CLIENT_MAX_BODY_SIZE:
     body_matches_size = server.does_body_match_size();
+    cout << "body_matches_size: " << body_matches_size << endl;
     // if (!body_matches_size)
     // send response with 413 ERROR
     
@@ -163,6 +186,11 @@ bool Route::is_valid_request()
     // - Required headers for CGI or special routes.
     // - Optional: check for forbidden headers or custom rules.
     return true;
+}
+
+void Route::form_response()
+{
+    is_valid_request();
 }
 
 const string& Route::get_route_name() const
