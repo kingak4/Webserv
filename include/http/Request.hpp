@@ -28,7 +28,6 @@ using namespace std;
 class Request
 {
 	private:
-			string raw_request;
 			map<string, string> headers;
 			string method, path, version;
 			string body;
@@ -37,7 +36,6 @@ class Request
 	public:
 			//constructors
 			Request();
-			Request(const string &request);
 			Request(const Request &other);
 			~Request();
 			//getters
@@ -46,11 +44,12 @@ class Request
 			string get_Version() const;
 			string get_Body() const;
 			map<string, string> get_Headers() const;
-			string get_Raw_Request() const;
 			bool is_Valid() const;
 			int get_Error_Code() const;
+			//functions
+			void reset();
+			void buildFromParser(const Parser& parser);
 
-
-}
+};
 
 #endif

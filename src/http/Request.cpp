@@ -16,23 +16,10 @@
 
 Request::Request()
 {
-	raw_request = "";
 	method = "";
 	path = "";
 	version = "";
 	body = "";
-	is_valid = false;
-	error_code = 0;
-}
-
-Request::Request(const string &request) 
-{
-	raw_request = request;
-	method = "";
-	path = "";
-	version = "";
-	body = "";
-	headers.clear();
 	is_valid = false;
 	error_code = 0;
 }
@@ -41,7 +28,6 @@ Request::Request(const Request &other)
 {
 	if(this != &other)
 	{
-		raw_request = other.raw_request;
 		method = other.method;
 		path = other.path;
 		version = other.version;
@@ -61,7 +47,35 @@ string Request::get_Path() const { return path; }
 string Request::get_Version() const { return version; }
 string Request::get_Body() const { return body; }
 map<string, string> Request::get_Headers() const { return headers; }
-string Request::get_Raw_Request() const { return raw_request; }
 bool Request::is_Valid() const { return is_valid; }
 int Request::get_Error_Code() const { return error_code; }
 
+void  Request::reset()
+{
+	method = "";
+	path = "";
+	version = "";
+	body = "";
+	headers.clear();
+	is_valid = false;
+	error_code = 0;
+}
+
+
+void Request::buildFromParser(const Parser& parser)
+{
+	reset();
+	if(!parser.is_Valid())
+	{
+		is_valid = false;
+		error_code = parser.get_Error_Code();
+		return;
+	}
+	is_valid = true;
+	error_code = 0;
+	method = parser.get_Method();
+	path  = parser.get_Path();
+	version = parser.get_Version();
+	body = parser.get_Body();
+	headers = parser.get_Headers();
+}
