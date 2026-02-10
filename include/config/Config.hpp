@@ -6,7 +6,7 @@
 /*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:52 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/09 18:14:51 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/10 19:43:43 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ class Config {
     
     public:
         Config();
-        Config(ConfigParser config_parser, Parser request);
+        Config(ServerData servers, Parser request);
         ~Config();
 
         bool does_body_match_size();

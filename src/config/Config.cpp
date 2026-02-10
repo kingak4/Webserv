@@ -6,7 +6,7 @@
 /*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:12 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/09 18:14:37 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/10 19:43:51 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,13 @@
 
 // Config::Config() {}
 
-Config::Config(ConfigParser config_parser, Parser request) {
-    server_name = config_parser.get_server_name();
-    port = config_parser.get_port();
-    host = config_parser.get_host();
-    client_max_body_size = config_parser.get_client_max_body_size();
-    root_dir = config_parser.get_root_dir();
-    error_pages = config_parser.get_error_pages();
+Config::Config(ServerData servers, Parser request) {
+    server_name = servers.server_name;
+    port = servers.port;
+    host = servers.host;
+    client_max_body_size = servers.client_max_body_size;
+    root_dir = servers.root_dir;
+    error_pages = servers.error_pages;
 
     // REQUEST DATA
     request_body = request.get_Body();

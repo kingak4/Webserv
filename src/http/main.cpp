@@ -277,50 +277,163 @@
 #include "../../include/config/ConfigParser.hpp"
 
 // helper
-void print_parsed_data(Config server_block, vector<Route> routes)
+// void print_parsed_data(Config server_block, vector<Route> routes)
+// {
+//     cout << "server_name: " << server_block.get_server_name() << endl;
+//     cout << "port: " << server_block.get_port() << endl;
+//     cout << "host: " << server_block.get_host() << endl;
+//     cout << "client_max_body_size: " << server_block.get_client_max_body_size() << endl;
+//     cout << "root: " << server_block.get_root_dir() << endl;
+
+//     map<int, string> error_pages = server_block.get_error_pages();
+
+//     map<int, string>::const_iterator it;
+//     for (it = error_pages.begin(); it != error_pages.end(); ++it)
+//         cout << "error page: " <<  it->first << " " << it->second << endl;
+
+//     cout << endl;
+
+//     cout << "routes.size(): " << routes.size() << endl;
+//     for (size_t i = 0; i < routes.size(); ++i)
+//     {
+//         cout << "route_name: " << routes[i].get_route_name() << endl;
+//         cout << "url: " << routes[i].get_url() << endl;
+//         for (size_t j = 0; j < routes[i].get_allowed_methods().size(); ++j)
+//         {
+//             cout << "method: " << routes[i].get_allowed_methods()[j] << endl;
+//         }
+//         cout << "autoindex: " << routes[i].get_autoindex() << endl;
+//         cout << endl;
+//     }
+// }
+
+void print_parsed_config(const ConfigParser& config_parser)
 {
+    // cout << "TEST!" << endl;
+    const vector<ServerData>& servers = config_parser.get_config_servers();
+
+    cout << "servers.size(): " << servers.size() << endl;
+    for (size_t i = 0; i < servers.size(); ++i)
+    {
+        const ServerData& server = servers[i];
+    
+        cout << "----------- SERVER" << i << " -----------" << endl;
+        cout << "server_name: " << server.server_name << endl;
+        cout << "port: " << server.port << endl;
+        cout << "host: " << server.host << endl;
+        cout << "client_max_body_size: " << server.client_max_body_size << endl;
+        cout << "root_dir: " << server.root_dir << endl;
+
+        cout << "error_pages:" << endl;
+        for (map<int, string>::const_iterator it = server.error_pages.begin(); it != server.error_pages.end(); ++it)
+        {
+            cout << " " << it->first << ": " << it->second << std::endl;
+        }
+
+        cout << "locations:" << endl;
+        for (size_t k = 0; k < server.locations.size(); ++k)
+        {
+            const Location& loc = server.locations[k];
+
+            cout << "   location: " << loc.route_name << endl;
+            cout << "       default: " << loc.url << endl;
+            cout << "       autoindex: " << loc.autoindex << endl;
+
+            cout << "       allowed_methods:" << endl;
+            for (size_t j = 0; j < loc.allowed_methods.size(); ++j)
+            {
+                cout << "      -" << loc.allowed_methods[j] << endl;
+            }
+        }
+    }
+}
+
+void print_server_block(Config server_block)
+{
+    cout << "----------- SERVER -----------" << endl;
     cout << "server_name: " << server_block.get_server_name() << endl;
     cout << "port: " << server_block.get_port() << endl;
     cout << "host: " << server_block.get_host() << endl;
     cout << "client_max_body_size: " << server_block.get_client_max_body_size() << endl;
-    cout << "root: " << server_block.get_root_dir() << endl;
+    cout << "root_dir: " << server_block.get_root_dir() << endl;
 
-    map<int, string> error_pages = server_block.get_error_pages();
-
-    map<int, string>::const_iterator it;
-    for (it = error_pages.begin(); it != error_pages.end(); ++it)
-        cout << "error page: " <<  it->first << " " << it->second << endl;
-
-    cout << endl;
-
-    cout << "routes.size(): " << routes.size() << endl;
-    for (size_t i = 0; i < routes.size(); ++i)
+    cout << "error_pages:" << endl;
+    for (map<int, string>::const_iterator it = server_block.get_error_pages().begin(); it != server_block.get_error_pages().end(); ++it)
     {
-        cout << "route_name: " << routes[i].get_route_name() << endl;
-        cout << "url: " << routes[i].get_url() << endl;
-        for (size_t j = 0; j < routes[i].get_allowed_methods().size(); ++j)
-        {
-            cout << "method: " << routes[i].get_allowed_methods()[j] << endl;
-        }
-        cout << "autoindex: " << routes[i].get_autoindex() << endl;
-        cout << endl;
+        cout << " " << it->first << ": " << it->second << std::endl;
     }
 }
 
-Route get_route_block(ConfigParser config_parser, Parser request, Config server_block)
+void print_route_block(Route route_block)
 {
-    Route res(server_block);
-    vector<Location> locations = config_parser.get_locations();
+    cout << "----------- LOCATION -----------" << endl;
+    cout << "route_name: " << route_block.get_route_name() << endl;
+    cout << "url: " << route_block.get_url() << endl;
+    cout << "autoindex: " << route_block.get_autoindex() << endl;
+    cout << "allowed_methods:" << endl;
 
-    string route_path = request.get_Path();
+    vector<string> methods = route_block.get_allowed_methods();
+    for (size_t i = 0; i < methods.size(); i++)
+    {
+        cout << methods[i] << endl;
+    }
+}
 
-    // WHEN I GET A ROUTE FROM PARSER, I NEED TO VALIDATE DATA FROM THIS REQUEST WITH CONFIG FILE RULES FOR THIS ROUTE
+Route* get_route_block(ServerData server, Parser& request, Config server_block)
+{
+    vector<Location>& locations = server.locations;
+    string path = request.get_Path();
+    string route_path;
+    size_t pos;
+
+    cout << "path: " << path << endl;
+    if ((pos = path.find("?")) != string::npos)
+        route_path = path.substr(0, pos);
+    else
+        route_path = path;
+
     for (size_t i = 0; i < locations.size(); ++i)
     {
-        if (route_path.find(locations[i].route_name) == 0)
-            return Route(locations[i], request, server_block);
+        cout << "route_path: " << route_path << endl;
+        if (route_path == locations[i].route_name)
+            return new Route(locations[i], request, server_block);
     }
-    return res;
+    return NULL;
+}
+
+int find_requested_server(Parser& request, ConfigParser& config_parser)
+{
+    request.parse_Request();
+
+    map<string, string> headers = request.get_Headers();
+    vector<ServerData> servers = config_parser.get_config_servers();
+    
+    Config* server_block = NULL;
+    Route* route_block = NULL;
+
+    cout << headers["host"] << std::endl;
+
+    for (size_t i = 0; i < servers.size(); i++)
+    {
+        if (servers[i].server_name == headers["host"])
+        {
+            server_block = new Config(servers[i], request);
+            route_block = get_route_block(servers[i], request, *server_block);
+            break ;
+        }
+    }
+
+    if (server_block && route_block)
+    {
+        print_server_block(*server_block);
+        print_route_block(*route_block);
+    }
+    else
+        return 1;
+    
+    delete server_block;
+    delete route_block;
+    return 0;
 }
 
 int main(int ac, char** av)
@@ -336,28 +449,28 @@ int main(int ac, char** av)
         config_parser.parse_config_file(param);
     }
     // else
-        // trow exception
+        // trow exception ?
 
-    // string req1 = "GET /index.html?user=John HTTP/1.1\r\nHost: localhost\r\n\r\n";
-    // Parser request(req1);
-    // request.parse_Request();
+    // print_parsed_config(config_parser);
+
+    
+    string req1 = "GET /uploads HTTP/1.1\r\nHost: test server\r\n\r\n";
+    Parser request(req1);
     // GET ROUTE BLOCK
-    Config server_block(config_parser, request);
 
-    // // GET ROUTE BLOCK
-    Route route_block = get_route_block(config_parser, request, server_block);
-    route_block.form_response();
-    // CgiHandler cgi;
-    // cgi.is_cgi(route_block);
+    if (find_requested_server(request, config_parser) == 1)
+    {
+        cout << "Requested server is not found" << endl;
+        return 0;
+    }
 
-    // FOR TESTING
-    // vector<Location> locations =  config_parser.get_locations();
-    // vector<Route> routes; // store each location into Route object and push all the Route objects into vactore<Route routes>
-    // for (size_t i = 0; i < locations.size(); ++i) // iterate over vector<Route> routes
-    // {
-    //     routes.push_back(Route(locations[i], request));
-    // }
-    // print_parsed_data(server_block, routes);
+
+    // Config server_block(config_parser, request);
+
+    // // // GET ROUTE BLOCK
+    // Route route_block = get_route_block(config_parser, request, server_block);
+    // // route_block.form_response();
+
 
     return 0;
 }
