@@ -10,7 +10,13 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sstream>
+#include <vector>
 
+//tests
+#include "../../include/http/Parser.hpp"
+#include "Client.hpp"
+
+class EpollManager;
 
 static const std::string RED = "\033[0;31m";
 static const std::string RESET = "\033[0m";
@@ -21,17 +27,15 @@ class Server
 	private:
 		int port;
 		int socket_fd;
-		int epoll_fd;
-		struct epoll_event event, active_events[10];
+		EpollManager &epoll_manager;
 	public:
-		Server(int port);
+		Server(int port, EpollManager &manager);
+		Server(const Server &other);
+		Server &operator=(const Server &other);
 		~Server(void);
 		int get_port(void) const;
 		int get_socket(void) const;
-		int get_epoll_fd(void) const;
-		struct epoll_event get_server_event(void);
-		struct epoll_event get_active_event(int index);
+		EpollManager &get_Epoll_Manager(void) const;
 		void server_init(void);
-		void server_loop(void);
 };
 #endif
