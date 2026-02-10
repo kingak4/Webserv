@@ -50,6 +50,7 @@ map<string, string> Request::get_Headers() const { return headers; }
 bool Request::is_Valid() const { return is_valid; }
 int Request::get_Error_Code() const { return error_code; }
 
+//functions
 void  Request::reset()
 {
 	method = "";
@@ -60,7 +61,6 @@ void  Request::reset()
 	is_valid = false;
 	error_code = 0;
 }
-
 
 void Request::buildFromParser(const Parser& parser)
 {
