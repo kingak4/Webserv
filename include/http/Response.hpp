@@ -17,5 +17,10 @@
 # include <iostream>
 # include <string>
 
+class Response
+{
+	
+}
+
 
 #endif

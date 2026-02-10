@@ -1,5 +1,7 @@
 #include <iostream>
 #include "http/Parser.hpp"
+#include "http/Request.hpp"
+
 
 // mian to test parsing request line 
 
@@ -266,6 +268,88 @@
 //     std::cout << "is_valid: " << p10.is_Valid() << "\n";
 //     std::cout << "error_code: " << p10.get_Error_Code() << "\n";
 //     std::cout << "body: \"" << p10.get_Body() << "\"\n\n";
+
+//     return 0;
+// }
+
+
+// test for making request for Alina 
+
+// int main()
+// {
+//     // ===== TEST 1: Poprawny GET =====
+//     std::string req1 = "GET /hello HTTP/1.1\r\nHost: localhost\r\n\r\n";
+//     Parser p1(req1);
+//     p1.parse_Request();
+
+//     Request r1;
+//     r1.buildFromParser(p1);
+
+//     std::cout << "=== REQUEST TEST 1: GET ===\n";
+//     std::cout << "is_valid: " << r1.is_Valid() << "\n";
+//     std::cout << "error_code: " << r1.get_Error_Code() << "\n";
+//     std::cout << "method: " << r1.get_Method() << "\n";
+//     std::cout << "path: " << r1.get_Path() << "\n";
+//     std::cout << "version: " << r1.get_Version() << "\n";
+//     std::cout << "body: \"" << r1.get_Body() << "\"\n\n";
+
+//     // ===== TEST 2: Poprawny POST z Content-Length =====
+//     std::string req2 =
+//         "POST /submit HTTP/1.1\r\nHost: localhost\r\nContent-Length: 5\r\n\r\nhello";
+//     Parser p2(req2);
+//     p2.parse_Request();
+
+//     Request r2;
+//     r2.buildFromParser(p2);
+
+//     std::cout << "=== REQUEST TEST 2: POST Content-Length ===\n";
+//     std::cout << "is_valid: " << r2.is_Valid() << "\n";
+//     std::cout << "error_code: " << r2.get_Error_Code() << "\n";
+//     std::cout << "method: " << r2.get_Method() << "\n";
+//     std::cout << "path: " << r2.get_Path() << "\n";
+//     std::cout << "body: \"" << r2.get_Body() << "\"\n\n";
+
+//     // ===== TEST 3: Poprawny POST chunked =====
+//     std::string req3 =
+//         "POST /upload HTTP/1.1\r\nHost: localhost\r\nTransfer-Encoding: chunked\r\n\r\n"
+//         "5\r\nhello\r\n0\r\n\r\n";
+//     Parser p3(req3);
+//     p3.parse_Request();
+
+//     Request r3;
+//     r3.buildFromParser(p3);
+
+//     std::cout << "=== REQUEST TEST 3: POST chunked ===\n";
+//     std::cout << "is_valid: " << r3.is_Valid() << "\n";
+//     std::cout << "error_code: " << r3.get_Error_Code() << "\n";
+//     std::cout << "method: " << r3.get_Method() << "\n";
+//     std::cout << "path: " << r3.get_Path() << "\n";
+//     std::cout << "body: \"" << r3.get_Body() << "\"\n\n";
+
+//     // ===== TEST 4: Błąd –  =====
+//     std::string req4 = "GET /hello HTTP/1.1\r\n\r\n";
+//     Parser p4(req4);
+//     p4.parse_Request();
+
+//     Request r4;
+//     r4.buildFromParser(p4);
+
+//     std::cout << "=== REQUEST TEST 4:   ===\n";
+//     std::cout << "is_valid: " << r4.is_Valid() << "\n";
+//     std::cout << "error_code: " << r4.get_Error_Code() << "\n\n";
+
+//     // ===== TEST 5: Błąd – body too short =====
+//     std::string req5 =
+//         "POST /submit HTTP/1.1\r\nHost: localhost\r\nContent-Length: 10\r\n\r\nshort";
+//     Parser p5(req5);
+//     p5.parse_Request();
+
+//     Request r5;
+//     r5.buildFromParser(p5);
+
+//     std::cout << "=== REQUEST TEST 5: body too short  ===\n";
+//     std::cout << "is_valid: " << r5.is_Valid() << "\n";
+//     std::cout << "error_code: " << r5.get_Error_Code() << "\n\n";
 
 //     return 0;
 // }
