@@ -1,8 +1,13 @@
-#include "EpollManager.hpp"
-#include "Client.hpp"
-#include "Server.hpp"
-#include <sys/epoll.h>
-#include <vector>
+#include "../../include/core/EpollManager.hpp"
+
+// sig_atomic_t: an integer type that can be accessed atomically
+volatile sig_atomic_t g_server_running = 1;
+
+void signal_handler(int signum) {
+    (void)signum; // avoid unused parameter warning
+    g_server_running = 0; 
+}
+
 
 vector<ConfigParser> split_Config(string &config)
 {
@@ -22,7 +27,14 @@ EpollManager::EpollManager(string &config)
 
 EpollManager::~EpollManager(void)
 {
-
+	map<int, Server*>::iterator it;
+	for (it = this->servers_running.begin(); it != this->servers_running.end(); ++it)
+	{
+		delete it->second;
+	}
+	this->servers_running.clear();
+	close(this->epoll_fd);
+	cout << "Shutting server " << RED << "OFF" << RESET << endl;
 }
 
 int EpollManager::get_Epoll_Fd(void)
@@ -33,7 +45,7 @@ const struct epoll_event &EpollManager::get_Epoll_Event(void) const
 {
 	return (this->event);
 }
-const map<int, Server> &EpollManager::get_Servers_Running(void) const
+const map<int, Server*> &EpollManager::get_Servers_Running(void) const
 {
 	return (this->servers_running);
 }
@@ -57,8 +69,8 @@ void EpollManager::init_Epoll(vector<ConfigParser> &config_splitted)
 
 	for (int i = 8080; i < 8083; ++i)
 	{
-		Server server(i, *this);		
-		int socket_fd = server.get_socket();
+		Server *server = new Server(i, *this);		
+		int socket_fd = server->get_socket();
 
 		this->event.data.fd = socket_fd;
 		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, socket_fd, &event) == -1)
@@ -68,12 +80,12 @@ void EpollManager::init_Epoll(vector<ConfigParser> &config_splitted)
 
 }
 
-Client accept_connection(Server &serv)
+Client *accept_connection(Server *serv)
 {
-	int clientSocket = accept(serv.get_socket(), NULL, NULL);
-	Client client(clientSocket, &serv);
+	int clientSocket = accept(serv->get_socket(), NULL, NULL);
+	Client *client = new Client(clientSocket, serv);
 	
-	EpollManager &epoll_manager = serv.get_Epoll_Manager();
+	EpollManager &epoll_manager = serv->get_Epoll_Manager();
 	if (clientSocket != -1)
 	{
 		cout << "New Client connected." << endl;
@@ -148,7 +160,7 @@ void handle_Read(struct epoll_event &event, Client &client)
 	}
 }
 
-void handle_Write(struct epoll_event &event, Client &client)
+bool handle_Write(struct epoll_event &event, Client &client)
 {
 	(void)event;
 
@@ -168,21 +180,38 @@ void handle_Write(struct epoll_event &event, Client &client)
 
 	if (write(event.data.fd, response.c_str(), response.length()) != (ssize_t)response.length())
 		cout << "Invalid write" << endl;
+	return true;
 }
 
 void EpollManager::epoll_Loop(void)
 {
-	map<int, Client> client_map;
-	while (true)
+	map<int, Client*> client_map;
+	while (g_server_running)
 	{
 		int num_fds = epoll_wait(epoll_fd, active_events, 10, -1);
+		if (num_fds == -1)
+		{
+			if (errno == EINTR)
+				continue ;
+			else 
+				throw runtime_error("epoll_wait error");
+		}
 		for (int i = 0; i < num_fds; i++)
 		{
 			int fd = active_events[i].data.fd;
 			if (active_events[i].events & (EPOLLERR | EPOLLHUP))
 			{
-				//this_thread->close_connection(fd);
-				client_map.erase(fd);
+				if (this->servers_running.count(fd)) 
+				{
+					std::cerr << "Listener error on fd " << fd << std::endl;
+					continue;
+				}
+				map<int, Client*>::iterator it = client_map.find(fd);
+				if (it != client_map.end())
+				{
+					delete it->second;
+					client_map.erase(it);
+				}
 				close(fd);
 				continue;
 			}
@@ -190,18 +219,25 @@ void EpollManager::epoll_Loop(void)
 			{
 				if (this->servers_running.count(fd))
 				{
-					Client client = accept_connection(this->servers_running.at(fd));
-					client_map[client.get_Socket()] = client;
+					Client *client = accept_connection(this->servers_running.at(fd));
+					//client_map[client.get_Socket()] = client;
+					client_map.insert(make_pair(client->get_Socket(), client));
 				}
 				else 
-					handle_Read(active_events[i], client_map[fd]);
+					handle_Read(active_events[i], *client_map[fd]);
 			}
 			if (active_events[i].events & EPOLLOUT)
 			{
-				std::map<int, Client>::iterator it = client_map.find(fd);
+				std::map<int, Client*>::iterator it = client_map.find(fd);
 				if (it != client_map.end())
 				{
-					handle_Write(active_events[i], it->second);
+					if (handle_Write(active_events[i], *it->second))
+					{
+						epoll_ctl(this->epoll_fd, EPOLL_CTL_DEL, fd, NULL);
+						close(fd);
+						delete it->second;
+						client_map.erase(it);
+					}
 				}
 				//handle_Write(active_events[i], client_map[fd]);
 			}
@@ -209,22 +245,12 @@ void EpollManager::epoll_Loop(void)
 		}
 	}
 	//close_epoll()
-	//foreach(server)
-	//	close(server_socket);
+	map<int, Client*>::iterator it;
+	for (it = client_map.begin(); it != client_map.end(); ++it)
+	{
+		close(it->first);
+		delete it->second;
+	}
+	client_map.clear();
 }
 
-
-int main()
-{
-	string aaa = "abc";
-	EpollManager epoll_manager(aaa);
-	try
-	{
-		epoll_manager.epoll_Loop();	
-	}
-	catch (runtime_error &e)
-	{
-		cout << RED << "ERROR: " << e.what() << RESET << endl;
-	}
-	return 0;
-}

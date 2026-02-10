@@ -1,6 +1,4 @@
-#include "Client.hpp"
-#include "Server.hpp"
-
+#include "../../include/core/Client.hpp"
 
 Client::Client(int socket, const Server *parent_server) : client_socket(socket), server(parent_server)
 {

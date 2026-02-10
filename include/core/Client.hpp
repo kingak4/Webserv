@@ -1,6 +1,9 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
+#include <iostream>
+using namespace std;
+
 class Server;
 
 class Client
