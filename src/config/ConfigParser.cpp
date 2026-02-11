@@ -6,7 +6,7 @@
 /*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:23 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/10 20:07:37 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/11 15:41:01 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,6 +86,7 @@ void ConfigParser::parse_route_block(string line, Location& loc)
 {
     size_t pos;
     string temp_str;
+    string str_methods;
 
     if ((pos = line.find("location")) != string::npos)
         loc.route_name = trim_str(line.substr(pos + string("location").length()));
@@ -94,7 +95,13 @@ void ConfigParser::parse_route_block(string line, Location& loc)
     else if ((pos = line.find("cgi")) != string::npos)
         loc.url = trim_str(line.substr(pos + string("cgi").length()));
     else if ((pos = line.find("allowed_methods")) != string::npos)
-        loc.allowed_methods.push_back(trim_str(line.substr(pos + string("allowed_methods").length())));
+    {
+        str_methods = trim_str(line.substr(pos + string("allowed_methods").length()));
+        istringstream iss(str_methods);
+        string method;
+        while (iss >> method)
+            loc.allowed_methods.push_back(method);
+    }
     else if ((pos = line.find("autoindex")) != string::npos)
         loc.autoindex = trim_str(line.substr(pos + string("autoindex").length())); 
 }

@@ -1,5 +1,7 @@
 #include <iostream>
 #include "http/Parser.hpp"
+#include "http/Request.hpp"
+
 #include "../../include/config/ConfigParser.hpp"
 #include "../../include/config/Config.hpp"
 #include "../../include/config/Route.hpp"
@@ -274,7 +276,87 @@
 //     return 0;
 // }
 
-#include "../../include/config/ConfigParser.hpp"
+
+// test for making request for Alina 
+
+// int main()
+// {
+//     // ===== TEST 1: Poprawny GET =====
+//     std::string req1 = "GET /hello HTTP/1.1\r\nHost: localhost\r\n\r\n";
+//     Parser p1(req1);
+//     p1.parse_Request();
+
+//     Request r1;
+//     r1.buildFromParser(p1);
+
+//     std::cout << "=== REQUEST TEST 1: GET ===\n";
+//     std::cout << "is_valid: " << r1.is_Valid() << "\n";
+//     std::cout << "error_code: " << r1.get_Error_Code() << "\n";
+//     std::cout << "method: " << r1.get_Method() << "\n";
+//     std::cout << "path: " << r1.get_Path() << "\n";
+//     std::cout << "version: " << r1.get_Version() << "\n";
+//     std::cout << "body: \"" << r1.get_Body() << "\"\n\n";
+
+//     // ===== TEST 2: Poprawny POST z Content-Length =====
+//     std::string req2 =
+//         "POST /submit HTTP/1.1\r\nHost: localhost\r\nContent-Length: 5\r\n\r\nhello";
+//     Parser p2(req2);
+//     p2.parse_Request();
+
+//     Request r2;
+//     r2.buildFromParser(p2);
+
+//     std::cout << "=== REQUEST TEST 2: POST Content-Length ===\n";
+//     std::cout << "is_valid: " << r2.is_Valid() << "\n";
+//     std::cout << "error_code: " << r2.get_Error_Code() << "\n";
+//     std::cout << "method: " << r2.get_Method() << "\n";
+//     std::cout << "path: " << r2.get_Path() << "\n";
+//     std::cout << "body: \"" << r2.get_Body() << "\"\n\n";
+
+//     // ===== TEST 3: Poprawny POST chunked =====
+//     std::string req3 =
+//         "POST /upload HTTP/1.1\r\nHost: localhost\r\nTransfer-Encoding: chunked\r\n\r\n"
+//         "5\r\nhello\r\n0\r\n\r\n";
+//     Parser p3(req3);
+//     p3.parse_Request();
+
+//     Request r3;
+//     r3.buildFromParser(p3);
+
+//     std::cout << "=== REQUEST TEST 3: POST chunked ===\n";
+//     std::cout << "is_valid: " << r3.is_Valid() << "\n";
+//     std::cout << "error_code: " << r3.get_Error_Code() << "\n";
+//     std::cout << "method: " << r3.get_Method() << "\n";
+//     std::cout << "path: " << r3.get_Path() << "\n";
+//     std::cout << "body: \"" << r3.get_Body() << "\"\n\n";
+
+//     // ===== TEST 4: Błąd –  =====
+//     std::string req4 = "GET /hello HTTP/1.1\r\n\r\n";
+//     Parser p4(req4);
+//     p4.parse_Request();
+
+//     Request r4;
+//     r4.buildFromParser(p4);
+
+//     std::cout << "=== REQUEST TEST 4:   ===\n";
+//     std::cout << "is_valid: " << r4.is_Valid() << "\n";
+//     std::cout << "error_code: " << r4.get_Error_Code() << "\n\n";
+
+//     // ===== TEST 5: Błąd – body too short =====
+//     std::string req5 =
+//         "POST /submit HTTP/1.1\r\nHost: localhost\r\nContent-Length: 10\r\n\r\nshort";
+//     Parser p5(req5);
+//     p5.parse_Request();
+
+//     Request r5;
+//     r5.buildFromParser(p5);
+
+//     std::cout << "=== REQUEST TEST 5: body too short  ===\n";
+//     std::cout << "is_valid: " << r5.is_Valid() << "\n";
+//     std::cout << "error_code: " << r5.get_Error_Code() << "\n\n";
+
+//     return 0;
+// }
 
 // helper
 // void print_parsed_data(Config server_block, vector<Route> routes)
@@ -309,7 +391,6 @@
 
 void print_parsed_config(const ConfigParser& config_parser)
 {
-    // cout << "TEST!" << endl;
     const vector<ServerData>& servers = config_parser.get_config_servers();
 
     cout << "servers.size(): " << servers.size() << endl;
@@ -386,7 +467,6 @@ Route* get_route_block(ServerData server, Parser& request, Config server_block)
     string route_path;
     size_t pos;
 
-    cout << "path: " << path << endl;
     if ((pos = path.find("?")) != string::npos)
         route_path = path.substr(0, pos);
     else
@@ -394,7 +474,6 @@ Route* get_route_block(ServerData server, Parser& request, Config server_block)
 
     for (size_t i = 0; i < locations.size(); ++i)
     {
-        cout << "route_path: " << route_path << endl;
         if (route_path == locations[i].route_name)
             return new Route(locations[i], request, server_block);
     }
@@ -411,7 +490,26 @@ int find_requested_server(Parser& request, ConfigParser& config_parser)
     Config* server_block = NULL;
     Route* route_block = NULL;
 
-    cout << headers["host"] << std::endl;
+    cout << headers["host"] << endl;
+
+    // STEP 1: filter servers by port
+    // vector<ServerData> candidates;
+    // for (size_t i = 0; i < servers.size(); ++i)
+    // {
+    //     if (servers[i].port == client_port)
+    //         candidates.push_back(servers[i]);
+    // }
+
+    // STEP 2: Try to find exact host match
+    // for (size_t i = 0; i < candidates.size(); i++)
+    // {
+    //     if (candidates[i].server_name == headers["host"])
+    //     {
+    //         server_block = new Config(candidates[i], request);
+    //         route_block = get_route_block(candidates[i], request, *server_block);
+    //         break ;
+    //     }
+    // }
 
     for (size_t i = 0; i < servers.size(); i++)
     {
@@ -423,16 +521,26 @@ int find_requested_server(Parser& request, ConfigParser& config_parser)
         }
     }
 
+    // STEP 3: If no server that matches the headers["host"] name is found, cho0se the first server from the list
+    // if (!server_block && !candidates.empty())
+    // {
+    //     server_block = new Config(candidates[0], request);
+    //     route_block = get_route_block(candidates[0], request, *server_block);
+    // }
+
     if (server_block && route_block)
     {
-        print_server_block(*server_block);
-        print_route_block(*route_block);
+        // print_server_block(*server_block);
+        // print_route_block(*route_block);
+
+        route_block->form_response();
+
+        delete server_block;
+        delete route_block;
     }
     else
-        return 1;
+        return 1; // no server found
     
-    delete server_block;
-    delete route_block;
     return 0;
 }
 
@@ -453,23 +561,34 @@ int main(int ac, char** av)
 
     // print_parsed_config(config_parser);
 
-    
-    string req1 = "GET /uploads HTTP/1.1\r\nHost: test server\r\n\r\n";
-    Parser request(req1);
-    // GET ROUTE BLOCK
+    // TEST SERVER SELECTION BY PORT
+    string req1 = "GET /uploads?user=Alice HTTP/1.1\r\nHost: super_webserv\r\n\r\n"; // on port 8080
+    // string req1 = "GET /uploads HTTP/1.1\r\nHost: super_webserv\r\n\r\n"; // on port 8080
+    // string req1 = "GET / HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n"; // on port 8088
+    // string req1 = "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n"; // on port 8000
 
+    // // TEST LOCATION MATCHING
+    // string req1 = "GET /uploads?user=John HTTP/1.1\r\nHost: test server\r\n\r\n";
+    // string req1 = "GET /uploads?user=John HTTP/1.1\r\nHost: test server\r\n\r\n";
+    // string req1 = "GET /uploads?user=John HTTP/1.1\r\nHost: test server\r\n\r\n";
+    // string req1 = "GET /uploads?user=John HTTP/1.1\r\nHost: test server\r\n\r\n";
+    // string req1 = "GET /uploads?user=John HTTP/1.1\r\nHost: test server\r\n\r\n";
+
+    // // TEST ALLOWED METHODS
+    // string req1 = "GET /uploads?user=John HTTP/1.1\r\nHost: test server\r\n\r\n";
+    // string req1 = "GET /uploads?user=John HTTP/1.1\r\nHost: test server\r\n\r\n";
+    // string req1 = "GET /uploads?user=John HTTP/1.1\r\nHost: test server\r\n\r\n";
+    // string req1 = "GET /uploads?user=John HTTP/1.1\r\nHost: test server\r\n\r\n";
+    // string req1 = "GET /uploads?user=John HTTP/1.1\r\nHost: test server\r\n\r\n";
+
+    Parser request(req1);
+
+    // GET ROUTE BLOCK AND LOCATION
     if (find_requested_server(request, config_parser) == 1)
     {
-        cout << "Requested server is not found" << endl;
+        cout << "Requested server or location is not found" << endl;
         return 0;
     }
-
-
-    // Config server_block(config_parser, request);
-
-    // // // GET ROUTE BLOCK
-    // Route route_block = get_route_block(config_parser, request, server_block);
-    // // route_block.form_response();
 
 
     return 0;

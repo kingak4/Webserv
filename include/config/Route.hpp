@@ -6,7 +6,7 @@
 /*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:13:02 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/10 20:51:29 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/11 15:14:55 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,12 +59,16 @@ class Route
         string retrieve_request_path(const string& request_full_path);
         string retrieve_request_query(const string& request_full_path);
         
+        void serve_static_file();
+        void handle_autoindex();
+        void serve_directory_listing(string& filesystem_path);
+
         // VALIDATION CHECKS
         bool is_valid_request_path();
         bool is_allowed_method();
         bool is_cgi();
         FsType get_filesystem_type();
-        string trim(string str);
+        string trim(const string& str);
         bool is_valid_request();
         void form_response();
 

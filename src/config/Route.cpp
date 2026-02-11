@@ -6,7 +6,7 @@
 /*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:30 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/10 20:50:34 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/11 15:42:47 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,8 @@ Route::Route(Location& loc, Parser request, Config& server_block) : server(serve
 {
     route_name = loc.route_name;
     url = loc.url;
+    
+    vector<string> method = loc.allowed_methods;
     allowed_methods = loc.allowed_methods;
     autoindex = loc.autoindex;
 
@@ -28,7 +30,6 @@ Route::Route(Location& loc, Parser request, Config& server_block) : server(serve
     request_version = request.get_Version();
     cout << "request_version: " << request_version << endl;
     request_headers = request.get_Headers();
-    
     
     for (std::map<std::string, std::string>::iterator it = request_headers.begin();
         it != request_headers.end(); ++it)
@@ -41,27 +42,28 @@ Route::Route(Location& loc, Parser request, Config& server_block) : server(serve
     request_query = retrieve_request_query(request_full_path);
     cout << "request_query: " << request_query << endl;
 
-    filesystem_path = server.get_root_dir() + "/" + request_path;
+    filesystem_path = server.get_root_dir() + request_path;
     cout << "filesystem_path: " << filesystem_path << endl;
-    
-    // request_method = "GET";
-    // request_version = "HTTP/1.1";
-    
 }
 
 Route::~Route() {}
 
-string Route::retrieve_request_path(const string& request_full_path)
+string Route::retrieve_request_path(const std::string& request_full_path)
 {
     size_t pos;
     string res;
-    
+
     if ((pos = request_full_path.find('?')) != string::npos)
         res = request_full_path.substr(0, pos);
     else
         res = request_full_path;
+
+    if (res.empty())
+        res = "/"; // default to root path
+
     return res;
 }
+
 
 string Route::retrieve_request_query(const string& request_full_path)
 {
@@ -83,13 +85,13 @@ bool Route::is_valid_request_path()
     return request_path == url;
 }
 
-// check if request method coincide with config file allowed method
+// check if request method coincides with config file allowed method
 bool Route::is_allowed_method()
 {
     for (size_t i = 0; i < allowed_methods.size(); i++)
     {
         if (allowed_methods[i] == request_method)
-            return true;
+            return true;       
     }
     return false;
 }
@@ -106,50 +108,88 @@ FsType Route::get_filesystem_type()
     struct stat buffer; // stat holds metadata about file
     
     if (stat(filesystem_path.c_str(), &buffer) != 0) // buffer.st_mode contains data about file type and permissions;
-        return FS_NOT_FOUND;
+        return FS_NOT_FOUND; // 0
     
     if (S_ISREG(buffer.st_mode))
-        return FS_IS_FILE;
+        return FS_IS_FILE; // 1
 
     if (S_ISDIR(buffer.st_mode))
-        return FS_IS_DIR;
+        return FS_IS_DIR; // 2
         
     return FS_NOT_FOUND;
 }
 
-string Route::trim(string str)
+string Route::trim(const string& str)
 {
-    size_t start_idx;
-    size_t end_idx;
+    size_t start;
+    size_t end;
+    
+    if (str.empty())
+        return "";
 
-    start_idx = str.find_first_not_of("/");
-    end_idx = str.find_last_not_of("/");
+    start = 0;
+    end = str.size() - 1;
 
-    return str.substr(start_idx, end_idx - start_idx + 1);    
+    while (start <= end && (str[start] == ' ' || str[start] == '\t' || str[start] == '\n'))
+        ++start;
+
+    while (end >= start && (str[end] == ' ' || str[end] == '\t' || str[end] == '\n'))
+        --end;
+
+    return str.substr(start, end - start + 1);
+}
+
+// void Route::serve_directory_listing(string& filesystem_path)
+// {
+    
+// }
+
+void Route::handle_autoindex()
+{
+    struct stat st;
+    string index_path;
+
+    index_path = filesystem_path + "/" + url;
+
+    if (autoindex == "off") // serve index.html
+    {
+        if (stat(filesystem_path.c_str(), &st) == 0 && S_ISREG(st.st_mode))
+            filesystem_path = index_path;
+        else
+            // 403 or 404 error
+            return ;
+    }
+    // else if (autoindex == "on")
+    //     serve_directory_listing(filesystem_path)
+}
+
+void Route::serve_static_file()
+{
+    struct stat st;
+
+    if (stat(filesystem_path.c_str(), &st) == 0 && S_ISREG(st.st_mode))
+    {
+        // form and send response
+        cout << "Filepath is normal file" << endl;
+    }
+    else
+        // 404 error;
+        return;
 }
 
 bool Route::is_valid_request()
 {
     FsType filesystem_status;
-    bool request_path_is_valid;
     bool method_is_allowed;
     bool body_matches_size;
 
-    // 1. SPLIT REQUEST_FULL_PATH INTO REQUEST_PATH AND REQUEST_QUERY
-    
-    // 2. COMPARE REQUEST_PATH AGAINS LOCATION_URL
-    request_path_is_valid = is_valid_request_path();
-    cout << "request_path_is_valid: " << request_path_is_valid << endl;
-    // if (!request_path_is_valid)
-    // send error response
-
-    // 3. CHECK ALLOWED METHODS:
+    // 1. CHECK ALLOWED METHODS:
     method_is_allowed = is_allowed_method();
     cout << "method_is_allowed: " << method_is_allowed << endl;
     // if (!method_is_allowed)
     // send response with 405 ERROR
 
-    // 4. BUILD THE FILESYSTEM PATH
+    // 2. BUILD THE FILESYSTEM PATH
 
     filesystem_status = get_filesystem_type();
     cout << "filesystem_status: " << filesystem_status << endl;
@@ -161,36 +201,26 @@ bool Route::is_valid_request()
     //         if (is_cgi())
     //             // got to CgiHndler
     //         else
-    //             // serve static file
-    //     case FS_IS_DIR
-    //         // handle autoindex
+    //             serve_static_file(); // serve static file
+    //     case FS_IS_DIR:
+    //         handle_autoindex(); // handle autoindex
     // }
 
-    // IF THE REQUEST PATH POINTS TO A DICTIONARY, CHECK IF AUTOINDEX IS ENABLED IN THE CONFIG
-    
-
-    // IF THERE'S A BODY, VERIFY ITS SIZE AGAINST CLIENT_MAX_BODY_SIZE:
+    // 3. IF THERE'S A BODY, VERIFY ITS SIZE AGAINST CLIENT_MAX_BODY_SIZE:
     body_matches_size = server.does_body_match_size();
     cout << "body_matches_size: " << body_matches_size << endl;
     // if (!body_matches_size)
     // send response with 413 ERROR
     
-    // CHECKS:
-    // AUTOINDEX:
-    // - if the request path points to a dictionary, check if autoindex is enabled in the config.
-    // - respond with 403 or 404 or generate a directory listing?
-    // CGI / SCRIPT HANDLING :
-    // - : If the request points to a file that should be handled by CGI (like .php, .py, etc.), verify the route’s CGI rules.
-    // Headers
-    // - Host header → must match server_name.
-    // - Required headers for CGI or special routes.
-    // - Optional: check for forbidden headers or custom rules.
     return true;
 }
 
 void Route::form_response()
 {
-    is_valid_request();
+    bool request_is_valid;
+
+    request_is_valid = is_valid_request();
+    cout << "request_is_valid: " << request_is_valid << endl;
 }
 
 const string& Route::get_route_name() const
