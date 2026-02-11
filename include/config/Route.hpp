@@ -6,7 +6,7 @@
 /*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:13:02 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/11 16:05:47 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/11 18:34:41 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,10 +17,11 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <sys/stat.h>
 #include "ConfigParser.hpp"
 #include "Config.hpp"
 #include "../http/Request.hpp"
-#include <sys/stat.h>
+#include "../cgi/CgiHandler.hpp"
 
 using namespace std;
 

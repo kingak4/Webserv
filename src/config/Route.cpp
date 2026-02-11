@@ -6,13 +6,11 @@
 /*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:30 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/11 16:05:08 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/11 19:39:24 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/config/Route.hpp"
-
-// Route::Route(Config& server_block) : server(server_block) {};
 
 Route::Route(Location& loc, Request& request, Config& server_block) : server(server_block)
 {
@@ -169,7 +167,7 @@ void Route::serve_static_file()
 
     if (stat(filesystem_path.c_str(), &st) == 0 && S_ISREG(st.st_mode))
     {
-        // form and send response
+        // read the file content and send the response
         cout << "Filepath is normal file" << endl;
     }
     else
@@ -195,11 +193,14 @@ bool Route::is_valid_request()
     cout << "filesystem_status: " << filesystem_status << endl;
     // switch(filesystem_status)
     // {
-    //     case FS_NOT_FOUND:
-    //         // 404 ERROR
+    //     // case FS_NOT_FOUND:
+    //     //     // 404 ERROR
     //     case FS_IS_FILE:
     //         if (is_cgi())
-    //             // got to CgiHndler
+    //         {
+    //             CgiHandler cgi(route, request);
+    //             cgi.run();   
+    //         }
     //         else
     //             serve_static_file(); // serve static file
     //     case FS_IS_DIR:
