@@ -6,7 +6,7 @@
 /*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:13:02 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/11 15:14:55 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/11 16:05:47 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 #include <vector>
 #include "ConfigParser.hpp"
 #include "Config.hpp"
-#include "../http/Parser.hpp"
+#include "../http/Request.hpp"
 #include <sys/stat.h>
 
 using namespace std;
@@ -52,8 +52,8 @@ class Route
     map<string, string> request_headers;
 
     public:
-        Route(Config& server_block);
-        Route(Location& loc, Parser request, Config& server_block);
+        // Route(Config& server_block);
+        Route(Location& loc, Request& request, Config& server_block);
         ~Route();
 
         string retrieve_request_path(const string& request_full_path);

@@ -6,15 +6,15 @@
 /*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:30 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/11 15:42:47 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/11 16:05:08 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/config/Route.hpp"
 
-Route::Route(Config& server_block) : server(server_block) {};
+// Route::Route(Config& server_block) : server(server_block) {};
 
-Route::Route(Location& loc, Parser request, Config& server_block) : server(server_block)
+Route::Route(Location& loc, Request& request, Config& server_block) : server(server_block)
 {
     route_name = loc.route_name;
     url = loc.url;
@@ -31,11 +31,11 @@ Route::Route(Location& loc, Parser request, Config& server_block) : server(serve
     cout << "request_version: " << request_version << endl;
     request_headers = request.get_Headers();
     
-    for (std::map<std::string, std::string>::iterator it = request_headers.begin();
-        it != request_headers.end(); ++it)
-    {
-        std::cout << it->first << ": " << it->second << std::endl;
-    }
+    // for (map<string, string>::iterator it = request_headers.begin();
+    //     it != request_headers.end(); ++it)
+    // {
+    //     cout << it->first << ": " << it->second << endl;
+    // }
 
     request_path = trim(retrieve_request_path(request_full_path));
     cout << "request_path: " << request_path << endl;
@@ -48,7 +48,7 @@ Route::Route(Location& loc, Parser request, Config& server_block) : server(serve
 
 Route::~Route() {}
 
-string Route::retrieve_request_path(const std::string& request_full_path)
+string Route::retrieve_request_path(const string& request_full_path)
 {
     size_t pos;
     string res;

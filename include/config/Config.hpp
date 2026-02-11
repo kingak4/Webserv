@@ -6,7 +6,7 @@
 /*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:52 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/10 19:43:43 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/11 16:05:59 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 #include <map>
 #include <vector>
 #include "ConfigParser.hpp"
-#include "../http/Parser.hpp"
+#include "../http/Request.hpp"
 
 using namespace std;
 
@@ -35,7 +35,7 @@ class Config {
     
     public:
         Config();
-        Config(ServerData servers, Parser request);
+        Config(ServerData servers, Request& request);
         ~Config();
 
         bool does_body_match_size();

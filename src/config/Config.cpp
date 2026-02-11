@@ -6,7 +6,7 @@
 /*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:12 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/10 19:43:51 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/11 16:02:02 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 // Config::Config() {}
 
-Config::Config(ServerData servers, Parser request) {
+Config::Config(ServerData servers, Request& request) {
     server_name = servers.server_name;
     port = servers.port;
     host = servers.host;
@@ -24,8 +24,6 @@ Config::Config(ServerData servers, Parser request) {
 
     // REQUEST DATA
     request_body = request.get_Body();
-    // request_body = "name=John&age=42"
-    cout << "request_body: " << request_body << endl;
 }
 
 Config::~Config() {}

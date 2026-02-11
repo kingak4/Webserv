@@ -389,78 +389,7 @@
 //     }
 // }
 
-void print_parsed_config(const ConfigParser& config_parser)
-{
-    const vector<ServerData>& servers = config_parser.get_config_servers();
-
-    cout << "servers.size(): " << servers.size() << endl;
-    for (size_t i = 0; i < servers.size(); ++i)
-    {
-        const ServerData& server = servers[i];
-    
-        cout << "----------- SERVER" << i << " -----------" << endl;
-        cout << "server_name: " << server.server_name << endl;
-        cout << "port: " << server.port << endl;
-        cout << "host: " << server.host << endl;
-        cout << "client_max_body_size: " << server.client_max_body_size << endl;
-        cout << "root_dir: " << server.root_dir << endl;
-
-        cout << "error_pages:" << endl;
-        for (map<int, string>::const_iterator it = server.error_pages.begin(); it != server.error_pages.end(); ++it)
-        {
-            cout << " " << it->first << ": " << it->second << std::endl;
-        }
-
-        cout << "locations:" << endl;
-        for (size_t k = 0; k < server.locations.size(); ++k)
-        {
-            const Location& loc = server.locations[k];
-
-            cout << "   location: " << loc.route_name << endl;
-            cout << "       default: " << loc.url << endl;
-            cout << "       autoindex: " << loc.autoindex << endl;
-
-            cout << "       allowed_methods:" << endl;
-            for (size_t j = 0; j < loc.allowed_methods.size(); ++j)
-            {
-                cout << "      -" << loc.allowed_methods[j] << endl;
-            }
-        }
-    }
-}
-
-void print_server_block(Config server_block)
-{
-    cout << "----------- SERVER -----------" << endl;
-    cout << "server_name: " << server_block.get_server_name() << endl;
-    cout << "port: " << server_block.get_port() << endl;
-    cout << "host: " << server_block.get_host() << endl;
-    cout << "client_max_body_size: " << server_block.get_client_max_body_size() << endl;
-    cout << "root_dir: " << server_block.get_root_dir() << endl;
-
-    cout << "error_pages:" << endl;
-    for (map<int, string>::const_iterator it = server_block.get_error_pages().begin(); it != server_block.get_error_pages().end(); ++it)
-    {
-        cout << " " << it->first << ": " << it->second << std::endl;
-    }
-}
-
-void print_route_block(Route route_block)
-{
-    cout << "----------- LOCATION -----------" << endl;
-    cout << "route_name: " << route_block.get_route_name() << endl;
-    cout << "url: " << route_block.get_url() << endl;
-    cout << "autoindex: " << route_block.get_autoindex() << endl;
-    cout << "allowed_methods:" << endl;
-
-    vector<string> methods = route_block.get_allowed_methods();
-    for (size_t i = 0; i < methods.size(); i++)
-    {
-        cout << methods[i] << endl;
-    }
-}
-
-Route* get_route_block(ServerData server, Parser& request, Config server_block)
+Route* get_route_block(ServerData server, Request& request, Config server_block)
 {
     vector<Location>& locations = server.locations;
     string path = request.get_Path();
@@ -480,10 +409,8 @@ Route* get_route_block(ServerData server, Parser& request, Config server_block)
     return NULL;
 }
 
-int find_requested_server(Parser& request, ConfigParser& config_parser)
+int find_requested_server(Request& request, ConfigParser& config_parser)
 {
-    request.parse_Request();
-
     map<string, string> headers = request.get_Headers();
     vector<ServerData> servers = config_parser.get_config_servers();
     
@@ -530,9 +457,6 @@ int find_requested_server(Parser& request, ConfigParser& config_parser)
 
     if (server_block && route_block)
     {
-        // print_server_block(*server_block);
-        // print_route_block(*route_block);
-
         route_block->form_response();
 
         delete server_block;
@@ -556,32 +480,20 @@ int main(int ac, char** av)
         string param(av[1]);
         config_parser.parse_config_file(param);
     }
-    // else
-        // trow exception ?
+    else
+    {
+        cout << "Wrong number of argument" << endl;
+        return 1;
+    }
 
-    // print_parsed_config(config_parser);
 
-    // TEST SERVER SELECTION BY PORT
-    string req1 = "GET /uploads?user=Alice HTTP/1.1\r\nHost: super_webserv\r\n\r\n"; // on port 8080
-    // string req1 = "GET /uploads HTTP/1.1\r\nHost: super_webserv\r\n\r\n"; // on port 8080
-    // string req1 = "GET / HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n"; // on port 8088
-    // string req1 = "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n"; // on port 8000
+    string req1 = "GET /?user=Alice HTTP/1.1\r\nHost: super_webserv\r\n\r\n";
 
-    // // TEST LOCATION MATCHING
-    // string req1 = "GET /uploads?user=John HTTP/1.1\r\nHost: test server\r\n\r\n";
-    // string req1 = "GET /uploads?user=John HTTP/1.1\r\nHost: test server\r\n\r\n";
-    // string req1 = "GET /uploads?user=John HTTP/1.1\r\nHost: test server\r\n\r\n";
-    // string req1 = "GET /uploads?user=John HTTP/1.1\r\nHost: test server\r\n\r\n";
-    // string req1 = "GET /uploads?user=John HTTP/1.1\r\nHost: test server\r\n\r\n";
+    Parser parser(req1);
+    parser.parse_Request();
 
-    // // TEST ALLOWED METHODS
-    // string req1 = "GET /uploads?user=John HTTP/1.1\r\nHost: test server\r\n\r\n";
-    // string req1 = "GET /uploads?user=John HTTP/1.1\r\nHost: test server\r\n\r\n";
-    // string req1 = "GET /uploads?user=John HTTP/1.1\r\nHost: test server\r\n\r\n";
-    // string req1 = "GET /uploads?user=John HTTP/1.1\r\nHost: test server\r\n\r\n";
-    // string req1 = "GET /uploads?user=John HTTP/1.1\r\nHost: test server\r\n\r\n";
-
-    Parser request(req1);
+    Request request;
+    request.buildFromParser(parser);
 
     // GET ROUTE BLOCK AND LOCATION
     if (find_requested_server(request, config_parser) == 1)
