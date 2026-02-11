@@ -6,7 +6,7 @@
 /*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:23 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/11 15:41:01 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/11 16:55:25 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,7 +108,10 @@ void ConfigParser::parse_route_block(string line, Location& loc)
 
 void ConfigParser::parse_config_file(string& filename)
 {
-    ifstream config(filename.c_str());
+    string abs_path_to_filename;
+
+    abs_path_to_filename = get_absolute_path_to_dict(filename);
+    ifstream config(abs_path_to_filename.c_str());
     if (!config.is_open()) // handle inside try/catch ?
     {
         cout << "Error while opening the file" << endl;
@@ -179,23 +182,6 @@ void ConfigParser::parse_config_file(string& filename)
 
     config.close();
 }
-
-// string ConfigParser::trim_str(const string& temp_str)
-// {
-//     if (temp_str.empty())
-//         return "";
-
-//     size_t start_idx = temp_str.find_first_not_of(" \t\n\r");
-//     if (start_idx == string::npos)
-//         return ""; // entire string is whitespace
-
-//     size_t end_idx = temp_str.find_last_not_of(" {;\t\n\r");
-//     if (end_idx == string::npos || end_idx < start_idx)
-//         return ""; // nothing valid
-
-//     return temp_str.substr(start_idx, end_idx - start_idx + 1);
-// }
-
 
 string ConfigParser::trim_str(string temp_str)
 {
