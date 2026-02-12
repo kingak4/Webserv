@@ -11,6 +11,8 @@
 
 using namespace std;
 
+void signal_handler(int signum);
+
 class EpollManager
 {
 	private:
@@ -18,9 +20,9 @@ class EpollManager
 		struct epoll_event event, active_events[10];
 		map<int, Server*> servers_running;
 	public:
-		EpollManager(string &config);
+		EpollManager(void);
 		~EpollManager(void);
-		void init_Epoll(vector<ConfigParser> &config_splitted);
+		void init_Epoll(vector<ServerData> &config_splitted);
 		void epoll_Loop(void);
 		int get_Epoll_Fd(void);
 		const struct epoll_event &get_Epoll_Event(void) const;

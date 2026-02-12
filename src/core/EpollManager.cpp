@@ -8,22 +8,7 @@ void signal_handler(int signum) {
     g_server_running = 0; 
 }
 
-
-vector<ConfigParser> split_Config(string &config)
-{
-	(void)config; //ignorowanie nieużytego configa
-	 
-	vector<ConfigParser> config_parsers;
-	ConfigParser parser;
-	config_parsers.push_back(parser);
-	return config_parsers;
-}
-
-EpollManager::EpollManager(string &config)
-{
-	vector<ConfigParser> splitted = split_Config(config);	
-	init_Epoll(splitted);
-}
+EpollManager::EpollManager(void) {  }
 
 EpollManager::~EpollManager(void)
 {
@@ -50,24 +35,23 @@ const map<int, Server*> &EpollManager::get_Servers_Running(void) const
 	return (this->servers_running);
 }
 
-void EpollManager::init_Epoll(vector<ConfigParser> &config_splitted)
+void EpollManager::init_Epoll(vector<ServerData> &config_splitted)
 {
 	this->epoll_fd = epoll_create(10);
 	this->event.events = EPOLLIN | EPOLLOUT;
 
-	(void)config_splitted;
-//	for (vector<ConfigParser>::iterator it = config_splitted.begin(); it != config_splitted.end(); ++it)
-//	{
-//		Server server(it->get_port(), *this);		
-//		int socket_fd = server.get_socket();
-//
-//		this->event.data.fd = socket_fd;
-//		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, socket_fd, &event) == -1)
-//			throw runtime_error("epoll_ctl ADD");
-//		this->servers_running.insert(make_pair(socket_fd, server));
-//	}
+	for (vector<ServerData>::iterator it = config_splitted.begin(); it != config_splitted.end(); ++it)
+	{
+		Server *server = new Server(it->port, *this);		
+		int socket_fd = server->get_socket();
 
-	for (int i = 8080; i < 8083; ++i)
+		this->event.data.fd = socket_fd;
+		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, socket_fd, &event) == -1)
+			throw runtime_error("epoll_ctl ADD");
+		this->servers_running.insert(make_pair(socket_fd, server));
+	}
+
+/*	for (int i = 8080; i < 8083; ++i)
 	{
 		Server *server = new Server(i, *this);		
 		int socket_fd = server->get_socket();
@@ -77,6 +61,7 @@ void EpollManager::init_Epoll(vector<ConfigParser> &config_splitted)
 			throw runtime_error("epoll_ctl ADD");
 		this->servers_running.insert(make_pair(socket_fd, server));
 	}
+	*/
 
 }
 
