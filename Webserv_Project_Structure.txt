@@ -61,7 +61,7 @@ This includes routing rules, file serving behavior, uploads, and CGI execution.
 Main Tasks:
 Parse the configuration file (NGINX-like syntax)
 Store server and route configurations in structured objects
-Match incoming URLs to route rules
+Match incoming URLs to route rules 
 Enforce allowed HTTP methods per route
 Handle HTTP redirections (301 / 302)
 Resolve root directories and index files
