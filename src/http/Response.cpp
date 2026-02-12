@@ -6,7 +6,7 @@
 /*   By: kikwasni <kikwasni@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/03 11:25:34 by kikwasni          #+#    #+#             */
-/*   Updated: 2026/02/12 11:22:06 by kikwasni         ###   ########.fr       */
+/*   Updated: 2026/02/12 16:20:40 by kikwasni         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,31 +18,33 @@ Response::Response()
 	status_text = "";
 	body = "";
 	raw_response = "";
+	is_built = false;
 }
 
 Response::Response(const Response &other)
 {
-	if(this != &other)
+	if (this != &other)
 	{
 		status_code = other.status_code;
 		status_text = other.status_text;
 		headers = other.headers;
 		body = other.body;
 		raw_response = other.raw_response;
+		is_built = other.is_built;
 	}
 }
 
 Response::~Response() {};
 
-//getters
+// getters
 
-int Response::get_Status_Code() const {return status_code;}
-string Response::get_Status_Text() const {return status_text;}
-string Response::get_Body() const {return body;}
-map<string, string> Response::get_Headers() const {return headers;}
-string Response::get_Raw_Response() const {return raw_response;}
-
-//helpers
+int Response::get_Status_Code() const { return status_code; }
+string Response::get_Status_Text() const { return status_text; }
+string Response::get_Body() const { return body; }
+map<string, string> Response::get_Headers() const { return headers; }
+string Response::get_Raw_Response() const { return raw_response; }
+bool Response::get_is_Built() const { return is_built };
+// helpers
 
 void Response::reset()
 {
@@ -51,16 +53,17 @@ void Response::reset()
 	headers.clear();
 	body = "";
 	raw_response = "";
+	is_built = false;
 }
 
-void Response::add_Header(const string& key , const string& value)
+void Response::add_Header(const string &key, const string &value)
 {
-	if(key.empty())
+	if (key.empty())
 		return;
 	headers[key] = value;
 }
 
-void Response::set_Body(const string& content)
+void Response::set_Body(const string &content)
 {
 	body = content;
 	std::stringstream ss;
@@ -68,7 +71,7 @@ void Response::set_Body(const string& content)
 	add_Header("Content-Length", ss.str());
 }
 
-string  Response::build_Status_Line() const
+string Response::build_Status_Line() const
 {
 	int code = get_Status_Code();
 	string text = get_Status_Text();
@@ -78,7 +81,25 @@ string  Response::build_Status_Line() const
 	return ss.str();
 }
 
-//functions
+// functions
 
-
-
+void Response::finalize_Response()
+{
+	string raw = build_Status_Line();
+	raw += "Date: " + get_Current_Date_RFC() + "\r\n";
+	raw += "Server: webserv\r\n";
+	raw += "Connection: close\r\n";
+	if (headers.find("Content-Length") == headers.end())
+	{
+		std::stringstream ss;
+		ss << body.size();
+		add_Header("Content-Length", ss.str());
+	}
+	map<string, string>::const_iterator it;
+	for (it = headers.begin(); it != headers.end(); ++it)
+		raw += it->first + ": " + it->second + "\r\n";
+	raw += "\r\n";
+	raw += body;
+	raw_response = raw;
+	is_built = true;
+}

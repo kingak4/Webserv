@@ -6,7 +6,7 @@
 /*   By: kikwasni <kikwasni@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/03 11:25:25 by kikwasni          #+#    #+#             */
-/*   Updated: 2026/02/12 10:27:06 by kikwasni         ###   ########.fr       */
+/*   Updated: 2026/02/12 16:18:34 by kikwasni         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,12 @@
 # include <list>
 # include <map>
 # include <sstream>
+# include <sys/stat.h>
+# include <fcntl.h>
+# include <unistd.h>
+# include <cstdio> 
+# include <ctime>
+# include "HttpUtils.hpp"
 
 using namespace std;
 
@@ -32,6 +38,7 @@ class Response
 		map<string, string> headers;
 		string body;
 		string raw_response;
+		bool is_built;
 	public:
 		//constructors
 		Response();
@@ -47,18 +54,19 @@ class Response
 		bool is_Valid() const;
 		int get_Status_Code() const;
 		string get_Status_text() const;
+		bool Response::get_is_Built() const;
 		//helpers
 		void reset();
 		void add_Header(const string& key , const string& value);
 		void set_Body(const string& content);
+		string build_Status_Line() const;
 		//functions
 		void finalize_Response();
-		string build_Status_Line() const;
+		void build_Error_Response(int code, const ServerConfig&);
 		void buildResponse(const Request&, const Route&, const ServerConfig&);
 		void handleGet(const Request&, const Route&);
 		void handlePost(const Request&, const Route&);
 		void handleDelete(const Request&, const Route&);
-		void buildErrorResponse(int code, const ServerConfig&);
 		string getRawResponse() const;
 
 };
