@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Parser.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
+/*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/03 11:25:19 by kikwasni          #+#    #+#             */
-/*   Updated: 2026/02/09 17:53:21 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/12 10:34:34 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,19 +20,27 @@
 # include <sstream>
 # include <string>
 # include <vector>
-# include <string>
+# include <cstdlib>
+
+using namespace std;
 
 class Parser
 {
 	private:
-			std::string raw_request;
-			std::map<std::string, std::string> headers;
-			std::string method, path, version;
-			std::string body;
+			string raw_request;
+			map<string, string> headers;
+			string method, path, version;
+			string body;
 			bool is_valid;
+			int error_code;
 	public:
+		//constructors
 		Parser();
-
+		Parser(const string &request);
+		Parser(const Parser &other);
+		~Parser();
+		//getters
+		string get_Method() const;
 		string get_Path() const;
 		string get_Version() const;
 		string get_Body() const;
