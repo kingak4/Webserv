@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kikwasni <kikwasni@student.42.fr>          +#+  +:+       +#+        */
+/*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/03 11:25:25 by kikwasni          #+#    #+#             */
-/*   Updated: 2026/02/03 11:34:28 by kikwasni         ###   ########.fr       */
+/*   Updated: 2026/02/11 16:25:19 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,5 +17,9 @@
 # include <iostream>
 # include <string>
 
+class Response
+{
+	
+};
 
 #endif
