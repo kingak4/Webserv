@@ -6,7 +6,7 @@
 /*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:30 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/11 19:39:24 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/13 17:49:33 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,47 +137,131 @@ string Route::trim(const string& str)
     return str.substr(start, end - start + 1);
 }
 
-// void Route::serve_directory_listing(string& filesystem_path)
+// string Route::serve_directory_listing(string& filesystem_path)
 // {
-    
+//     DIR *dir = opendir(filesystem_path.c_str());
+//     if (!dir)
+//         return error_response("500.html");
+
+//     ostringstream body;
+//     body << "<html>\n";
+//     body << "<head><title>Index of " << url << "</title></head>\n";
+//     body << "<body>\n";
+//     body << "<h1>Index of " << url << "</h1>\n";
+//     body << "<hr>\n";
+//     body << "<ul>\n";
+
+//     // struct dirent *entry;
+//     // while ((entry == readdir(dir)) != NULL)
+//     // {
+//     //     string name = entry->d_name;
+//     // }
 // }
 
-void Route::handle_autoindex()
+string Route::handle_autoindex()
 {
     struct stat st;
     string index_path;
 
     index_path = filesystem_path + "/" + url;
 
-    if (autoindex == "off") // serve index.html
+    if (autoindex == "off") // if autoindex off - serve index.html
     {
         if (stat(filesystem_path.c_str(), &st) == 0 && S_ISREG(st.st_mode))
-            filesystem_path = index_path;
+        {
+            filesystem_path = index_path;   
+            return read_static_file(filesystem_path);
+        }
         else
-            // 403 or 404 error
-            return ;
+            return error_response("404.html"); 
     }
-    // else if (autoindex == "on")
-    //     serve_directory_listing(filesystem_path)
+    // else if (autoindex == "on") // if autoindex on - serve index.html
+    //     return serve_directory_listing(filesystem_path);
+    
+    return error_response("500.html");
 }
 
-void Route::serve_static_file()
+string Route::find_abs_path(string file)
+{
+    char abs_path[PATH_MAX];
+
+    if (realpath(file.c_str(), abs_path) != NULL)
+    {
+        string file_abs_path(abs_path);
+        return file_abs_path;
+    }
+    cout << "Path to the error file not found" << endl;
+    return NULL;        
+}
+
+string Route::error_response(string error_file)
+{
+    string error_file_abs_path;
+
+    error_file_abs_path = find_abs_path(error_file);
+
+    // read error file
+    ifstream file(error_file_abs_path.c_str());
+    if (!file.is_open())
+    {
+        cout << "Coudn't open a file" << endl;
+        return NULL;   
+    }
+
+    ostringstream buffer;
+    buffer << file.rdbuf();
+
+    return buffer.str();
+}
+
+string Route::read_static_file(string filesystem_path)
+{
+    ifstream file(filesystem_path.c_str());
+
+    // could not open
+    if (!file.is_open())
+    {
+        // error 500
+        return error_response("500.html");
+    }
+
+    // read file into a string
+    ostringstream buffer;
+    buffer << file.rdbuf(); // read entire file into buffer
+    string file_content = buffer.str();
+    
+    string content_type = "text/html";
+
+    // build headers
+    ostringstream headers;
+    headers << "HTTP/1.1 200 OK\r\n";
+    headers << "Content-Type: " << content_type << "\r\n";
+    headers << "Content-Length: " << file_content.size() << "\r\n";
+    headers << "Connection: close\r\n\r\n";
+    headers << "\r\n";
+
+    string response = headers.str() + file_content;
+    return response;
+}
+
+string Route::serve_static_file()
 {
     struct stat st;
 
     if (stat(filesystem_path.c_str(), &st) == 0 && S_ISREG(st.st_mode))
     {
-        // read the file content and send the response
         cout << "Filepath is normal file" << endl;
+        return read_static_file(filesystem_path);
     }
     else
+    {
         // 404 error;
-        return;
+        return error_response("404.html");
+    }
 }
 
 bool Route::is_valid_request()
 {
-    FsType filesystem_status;
     bool method_is_allowed;
     bool body_matches_size;
 
@@ -187,41 +271,41 @@ bool Route::is_valid_request()
     // if (!method_is_allowed)
     // send response with 405 ERROR
 
-    // 2. BUILD THE FILESYSTEM PATH
-
-    filesystem_status = get_filesystem_type();
-    cout << "filesystem_status: " << filesystem_status << endl;
-    // switch(filesystem_status)
-    // {
-    //     // case FS_NOT_FOUND:
-    //     //     // 404 ERROR
-    //     case FS_IS_FILE:
-    //         if (is_cgi())
-    //         {
-    //             CgiHandler cgi(route, request);
-    //             cgi.run();   
-    //         }
-    //         else
-    //             serve_static_file(); // serve static file
-    //     case FS_IS_DIR:
-    //         handle_autoindex(); // handle autoindex
-    // }
-
-    // 3. IF THERE'S A BODY, VERIFY ITS SIZE AGAINST CLIENT_MAX_BODY_SIZE:
+    // 2. IF THERE'S A BODY, VERIFY ITS SIZE AGAINST CLIENT_MAX_BODY_SIZE:
     body_matches_size = server.does_body_match_size();
     cout << "body_matches_size: " << body_matches_size << endl;
     // if (!body_matches_size)
     // send response with 413 ERROR
-    
+
     return true;
 }
 
-void Route::form_response()
+string Route::form_response()
 {
+    FsType filesystem_status;
     bool request_is_valid;
 
     request_is_valid = is_valid_request();
     cout << "request_is_valid: " << request_is_valid << endl;
+
+    filesystem_status = get_filesystem_type();
+    cout << "filesystem_status: " << filesystem_status << endl;
+    switch(filesystem_status)
+    {
+        case FS_NOT_FOUND:
+            return error_response("404.html");
+        case FS_IS_FILE:
+            // if (is_cgi())
+            // {
+            //     CgiHandler cgi(route, request);
+            //     cgi.run();   
+            // }
+            // else
+            return serve_static_file(); // serve static file
+        case FS_IS_DIR:
+            return handle_autoindex(); // handle autoindex
+    }
+    return "";
 }
 
 const string& Route::get_route_name() const

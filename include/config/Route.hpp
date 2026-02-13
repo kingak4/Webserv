@@ -6,7 +6,7 @@
 /*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:13:02 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/11 18:34:41 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/13 16:29:13 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,10 @@
 #define ROUTE_HPP
 
 #include <string>
+#include <fstream>
+#include <sstream>
 #include <iostream>
+#include <dirent.h>
 #include <map>
 #include <vector>
 #include <sys/stat.h>
@@ -60,9 +63,12 @@ class Route
         string retrieve_request_path(const string& request_full_path);
         string retrieve_request_query(const string& request_full_path);
         
-        void serve_static_file();
-        void handle_autoindex();
-        void serve_directory_listing(string& filesystem_path);
+        string find_abs_path(string file);
+        string read_static_file(string filesystem_path);
+        string error_response(string error_file);
+        string serve_static_file();
+        string handle_autoindex();
+        string serve_directory_listing(string& filesystem_path);
 
         // VALIDATION CHECKS
         bool is_valid_request_path();
@@ -71,7 +77,7 @@ class Route
         FsType get_filesystem_type();
         string trim(const string& str);
         bool is_valid_request();
-        void form_response();
+        string form_response();
 
         // GETTERS
         const string& get_route_name() const;

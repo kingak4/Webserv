@@ -411,6 +411,8 @@ Route* get_route_block(ServerData server, Request& request, Config server_block)
 
 int find_requested_server(Request& request, ConfigParser& config_parser)
 {
+    string response;
+
     map<string, string> headers = request.get_Headers();
     vector<ServerData> servers = config_parser.get_config_servers();
     
@@ -457,7 +459,12 @@ int find_requested_server(Request& request, ConfigParser& config_parser)
 
     if (server_block && route_block)
     {
-        route_block->form_response();
+        response = route_block->form_response();
+        if (response == "")
+        {
+            cout << "response is NULL" << endl;
+        }
+        cout << response << endl;
 
         delete server_block;
         delete route_block;
@@ -486,7 +493,7 @@ int main(int ac, char** av)
         return 1;
     }
 
-    string req1 = "GET /uploads?user=Alice HTTP/1.1\r\nHost: super_webserv\r\n\r\n";
+    string req1 = "GET /index.html?user=Alice HTTP/1.1\r\nHost: super_webserv\r\n\r\n";
     // string req1 = "GET /uploads?user=Alice HTTP/1.1\r\nHost: cgi_webserv\r\n\r\n";
 
     Parser parser(req1);
