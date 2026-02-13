@@ -1,18 +1,12 @@
 #include "../../include/core/Client.hpp"
 
-Client::Client(int socket, const Server *parent_server) : client_socket(socket), server(parent_server)
-{
-	cout << "client constructor!" << endl;
-}
+Client::Client(int socket, const Server *parent_server) : client_socket(socket), server(parent_server) {}
 
-Client::Client(const Client &other) : client_socket(other.get_Socket()), server(other.get_Server())
-{
-}
+Client::Client(const Client &other) : client_socket(other.get_Socket()), server(other.get_Server()) {}
 
-Client::Client(void) : client_socket(-1), server(NULL)
-{
+Client::Client(void) : client_socket(-1), server(NULL) {}
 
-}
+Client::~Client(void) {}
 
 const string &Client::get_Response(void) const
 {
@@ -43,11 +37,6 @@ Client &Client::operator=(const Client &other)
 		this->buffer = other.get_Buffer().c_str();
 	}
 	return *this;
-}
-
-Client::~Client(void)
-{
-	cout << "client destructor!" << endl;
 }
 
 int Client::get_Socket(void) const

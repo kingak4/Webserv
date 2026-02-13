@@ -1,4 +1,6 @@
 #include "../../include/core/Server.hpp"
+#include <cerrno>
+#include <iterator>
 using namespace std;
 
 
@@ -7,7 +9,10 @@ Server::Server(int port, EpollManager &manager) :  port(port), epoll_manager(man
 {  
 	this->server_init();
 }
-Server::~Server(void) {cout << "server destruction!" <<endl;  }
+Server::~Server(void) 
+{
+	cout << BLUE << "Closing port " << this->port << "." << RESET << endl;  
+}
 
 Server &Server::operator=(const Server &other)
 {
@@ -42,6 +47,7 @@ void Server::server_init(void)
     serverAddress.sin_addr.s_addr = INADDR_ANY;
 
     this->socket_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+	cout << BLUE << "Port " << this->port << " socket created succesfuly." << RESET << endl;
 
 	int opt = 1;
 	if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
@@ -50,12 +56,18 @@ void Server::server_init(void)
 		throw runtime_error("setsockopt error(SO_REUSEADDR)");
 	}
 
-
     if (bind(socket_fd, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) == -1)
 	{
 		close(socket_fd);
 		throw runtime_error("binding error");
 	}
+	cout << BLUE << "Port " << this->port << " socket bind() succesful." << RESET << endl;
 
-	listen(socket_fd, 5);
+	if (listen(socket_fd, 5) == -1)
+	{
+		stringstream ss;
+		ss << "listen() error on port " << port <<  ". error code: " << errno;
+		throw runtime_error(ss.str());
+	}
+	cout << BLUE << "Port " << this->port << " listen() succesful." << RESET << endl;
 }

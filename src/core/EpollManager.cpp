@@ -5,8 +5,9 @@
 volatile sig_atomic_t g_server_running = 1;
 
 void signal_handler(int signum) {
-    (void)signum; // avoid unused parameter warning
+    (void)signum; 
     g_server_running = 0; 
+	cout << endl << BLUE << "SIGINT signal detected: " << BOLD_BLUE << "clean " << "shutdown initialized." << RESET << endl;
 }
 
 EpollManager::EpollManager(void) {  }
@@ -14,14 +15,12 @@ EpollManager::EpollManager(void) {  }
 EpollManager::~EpollManager(void)
 {
 	map<int, Server*>::iterator it;
+
 	for (it = this->servers_running.begin(); it != this->servers_running.end(); ++it)
-	{
-		cout << "destructor ERROR\n";
 		delete it->second;
-	}
 	this->servers_running.clear();
+	cout << BLUE << "Closing epoll file descriptor." << RESET << endl;
 	close(this->epoll_fd);
-	cout << "Shutting server " << RED << "OFF" << RESET << endl;
 }
 
 int EpollManager::get_Epoll_Fd(void)
@@ -50,39 +49,30 @@ void EpollManager::init_Epoll(vector<ServerData> &config_splitted)
 		this->event.data.fd = socket_fd;
 		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, socket_fd, &event) == -1)
 			throw runtime_error("epoll_ctl ADD");
+		cout << BLUE << "Port " << server->get_port() << " opened." << RESET << endl << endl;
 		this->servers_running.insert(make_pair(socket_fd, server));
 	}
-
-/*	for (int i = 8080; i < 8083; ++i)
-	{
-		Server *server = new Server(i, *this);		
-		int socket_fd = server->get_socket();
-
-		this->event.data.fd = socket_fd;
-		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, socket_fd, &event) == -1)
-			throw runtime_error("epoll_ctl ADD");
-		this->servers_running.insert(make_pair(socket_fd, server));
-	}
-	*/
-
 }
 
 Client *accept_connection(Server *serv)
 {
 	int clientSocket = accept(serv->get_socket(), NULL, NULL);
+	if (clientSocket == -1)
+		return NULL;
+	
 	Client *client = new Client(clientSocket, serv);
 	
 	EpollManager &epoll_manager = serv->get_Epoll_Manager();
 	if (clientSocket != -1)
 	{
-		cout << "New Client connected." << endl;
+		cout << "New Client connected on port " << serv->get_port() << "." << endl;
 		int status = fcntl(clientSocket, F_SETFL, O_NONBLOCK);
 		if (status == -1)
 		{
 			close(clientSocket);
 			throw runtime_error("fcntl error");
 		}
-		struct epoll_event event; //= epoll_manager.get_Epoll_Event();
+		struct epoll_event event;
 		event.events = EPOLLIN | EPOLLOUT;
 		event.data.fd = clientSocket;
 		epoll_ctl(epoll_manager.get_Epoll_Fd(), EPOLL_CTL_ADD, clientSocket, &event);
@@ -90,25 +80,16 @@ Client *accept_connection(Server *serv)
 	return client;
 }
 
-string process_request(const string &request_str)
+string process_request(const string &request_str, Client &client)
 {
 	Parser parser(request_str);
 	parser.parse_Request();
-
-	cout << (parser.is_Valid() ? GREEN : RED) << "Is valid: " << (parser.is_Valid() ? "TRUE " : "FALSE ") << endl;
-	cout << (parser.is_Valid() ? GREEN : RED) << "Method: " << parser.get_Method() << endl;
-	cout << (parser.is_Valid() ? GREEN : RED) << "Path: " << parser.get_Path() << endl;
-
-	std::map<std::string, std::string> headers = parser.get_Headers();
-	std::map<string, string>::iterator it;
-	cout << (parser.is_Valid() ? GREEN : RED) << "Headers: " << endl;
-	for (it = headers.begin(); it != headers.end(); ++it)
-	{
-		cout << (parser.is_Valid() ? GREEN : RED) << it->first << " : " << it->second << endl;
-	}
-	cout << RESET << endl;
-
-    return "HTTP/1.1 200 OK\r\n\r\nHello World";
+	
+	cout << "Request recived: " << parser.get_Method() << " " << parser.get_Path() << " on port " << client.get_Server()->get_port() << "." << endl;
+	if (parser.is_Valid())
+		return "HTTP/1.1 200 OK\r\n\r\nHello World";
+	else
+		return "HTTP/1.1 400 OK\r\n\r\n";
 }
 
 void handle_Read(struct epoll_event &event, Client &client)
@@ -120,20 +101,11 @@ void handle_Read(struct epoll_event &event, Client &client)
 		ssize_t count = read(event.data.fd, buffer, sizeof(buffer));		
 		if (count == -1)
 		{
-			//string request_content = entire_request.str();
-			client.set_Response(process_request(client.get_Buffer()));
+			client.set_Response(process_request(client.get_Buffer(), client));
 			stringstream portStr;
-			portStr << endl << "Port:" << client.get_Server()->get_port();
+
+			portStr << endl << "Port: " << client.get_Server()->get_port();
 			client.set_Response(client.get_Response() + portStr.str());
-			/* 1. call REQUEST_PARSER with entire_request.str() as parameter
-			 *it should return string to respond to the client.*/
-
-			/*2. Before write I should change flag of the socket
-			 *and then write to the client socket*/
-
-			//write(events[i].data.fd, respond.c_str(), respond.length());
-			
-			//close(events[i].data.fd);
 			break;
 		}
 		else if (count == 0)
@@ -143,10 +115,7 @@ void handle_Read(struct epoll_event &event, Client &client)
 			break;
 		}
 		else
-		{
-			//entire_request << buffer;
 			client.append_Buffer(buffer, count);
-		}
 	}
 }
 
@@ -185,7 +154,6 @@ void EpollManager::epoll_Loop(void)
 				map<int, Client*>::iterator it = client_map.find(fd);
 				if (it != client_map.end())
 				{
-					cout << "EPOLLERR | ERROR\n";
 					delete it->second;
 					client_map.erase(it);
 				}
@@ -197,7 +165,11 @@ void EpollManager::epoll_Loop(void)
 				if (this->servers_running.count(fd))
 				{
 					Client *client = accept_connection(this->servers_running.at(fd));
-					//client_map[client.get_Socket()] = client;
+					if (client == NULL)
+					{
+						cerr << RED << "Client accept() fail, continue.";
+						continue;
+					}
 					client_map.insert(make_pair(client->get_Socket(), client));
 				}
 				else 
@@ -214,22 +186,17 @@ void EpollManager::epoll_Loop(void)
 					{
 						epoll_ctl(this->epoll_fd, EPOLL_CTL_DEL, fd, NULL);
 						close(fd);
-						cout << "ERROR\n";
 						delete it->second;
 						client_map.erase(it);
 					}
 				}
-				//handle_Write(active_events[i], client_map[fd]);
 			}
-			//	handle_Write(active_events[i], client_map.find(fd));
 		}
 	}
-	//close_epoll()
 	map<int, Client*>::iterator it;
 	for (it = client_map.begin(); it != client_map.end(); ++it)
 	{
 		close(it->first);
-		cout << "ERROR 2\n";
 		delete it->second;
 	}
 	client_map.clear();

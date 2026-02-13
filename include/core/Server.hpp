@@ -21,6 +21,8 @@ class EpollManager;
 static const std::string RED = "\033[0;31m";
 static const std::string RESET = "\033[0m";
 static const std::string GREEN = "\033[0;32m";
+static const std::string BLUE = "\033[0;36m";
+static const std::string BOLD_BLUE = "\033[1;36m";
 
 class Server
 {
