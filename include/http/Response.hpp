@@ -6,7 +6,7 @@
 /*   By: kikwasni <kikwasni@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/03 11:25:25 by kikwasni          #+#    #+#             */
-/*   Updated: 2026/02/12 16:18:34 by kikwasni         ###   ########.fr       */
+/*   Updated: 2026/02/13 08:54:20 by kikwasni         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@
 # include <cstdio> 
 # include <ctime>
 # include "HttpUtils.hpp"
+# include "Request.hpp"
 
 using namespace std;
 
@@ -63,11 +64,10 @@ class Response
 		//functions
 		void finalize_Response();
 		void build_Error_Response(int code, const ServerConfig&);
-		void buildResponse(const Request&, const Route&, const ServerConfig&);
-		void handleGet(const Request&, const Route&);
-		void handlePost(const Request&, const Route&);
-		void handleDelete(const Request&, const Route&);
-		string getRawResponse() const;
+		void buildResponse(const Request& request, const Route& route, const ServerConfig&);
+		void handleGet(const Request& request, const Route& route);
+		void handlePost(const Request& request, const Route& route);
+		void handleDelete(const Request& request, const Route& route);
 
 };
 

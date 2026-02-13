@@ -6,7 +6,7 @@
 /*   By: kikwasni <kikwasni@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/12 10:22:55 by kikwasni          #+#    #+#             */
-/*   Updated: 2026/02/12 16:03:59 by kikwasni         ###   ########.fr       */
+/*   Updated: 2026/02/13 11:34:00 by kikwasni         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,6 +93,44 @@ string get_Current_Date_RFC()
 			time_struct->tm_min,
 			time_struct->tm_sec);
 	return (std::string(buffer));
+}
+
+string generateAutoindex(const std::string &directoryPath, const std::string &requestUri)
+{
+
+	DIR *dir = opendir(directoryPath.c_str());
+	if (dir == NULL)
+		return (string());
+	string html = "";
+	html += "<html>";
+	html += "<head><title>Index of " + requestUri + "</title></head>";
+	html += "<body>";
+	html += "<h1>Index of " + requestUri + "</h1>";
+	html += "<ul>"; 
+	struct dirent *entry;
+	while ((entry = readdir(dir)) != NULL)
+	{
+		string fileName = entry->d_name;
+		if (fileName == "." || fileName == "..")
+			continue;
+		string fullPath = directoryPath + "/" + fileName;
+		struct stat fileInfo;
+		if (stat(fullPath.c_str(), &fileInfo) == 0 && S_ISDIR(fileInfo.st_mode))
+		{
+			fileName += "/";
+		}
+		string fullLink = requestUri + fileName; 
+		html += "<li>";
+		html += "<a href=\"" + fullLink + "\">";
+		html += fileName;
+		html += "</a>";
+		html += "</li>";
+	}
+	closedir(dir);
+	html += "</ul>";
+	html += "</body>";
+	html += "</html>";
+	return (html);
 }
 
 string resolve_Path(const Request &request, const Route &route);

@@ -6,7 +6,7 @@
 /*   By: kikwasni <kikwasni@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/12 10:24:28 by kikwasni          #+#    #+#             */
-/*   Updated: 2026/02/12 16:03:52 by kikwasni         ###   ########.fr       */
+/*   Updated: 2026/02/13 09:18:59 by kikwasni         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ bool is_Directory(const string& path);
 string read_File(const string& path);
 string get_Mime_Type(const string& path);
 string get_Current_Date_RFC();
+string generateAutoindex(const std::string& directoryPath, const std::string& requestUri);
 string resolve_Path(const Request &request, const Route &route);
 
 
