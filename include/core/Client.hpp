@@ -11,16 +11,18 @@ class Client
 	private:
 		int client_socket;
 		const Server *server;
-		//TODO !!!!!
-		//char buffer[1024];
+		string buffer;
+		string resopnse;
 	public:
 		Client(int socket, const Server *server);
 		Client(void);
 		Client(const Client &other);
 		~Client(void);
 		Client &operator=(const Client &other);
-		void set_Buffer(string &new_buffer);
+		void append_Buffer(const char *data, size_t size);
 		const string &get_Buffer(void) const;
+		const string &get_Response(void) const;
+		void set_Response(const string &new_response);
 		int get_Socket(void) const;
 		const Server *get_Server(void) const;
 };

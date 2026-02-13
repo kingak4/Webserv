@@ -1,4 +1,5 @@
 #include "../../include/core/EpollManager.hpp"
+#include <iterator>
 
 // sig_atomic_t: an integer type that can be accessed atomically
 volatile sig_atomic_t g_server_running = 1;
@@ -15,6 +16,7 @@ EpollManager::~EpollManager(void)
 	map<int, Server*>::iterator it;
 	for (it = this->servers_running.begin(); it != this->servers_running.end(); ++it)
 	{
+		cout << "destructor ERROR\n";
 		delete it->second;
 	}
 	this->servers_running.clear();
@@ -80,7 +82,7 @@ Client *accept_connection(Server *serv)
 			close(clientSocket);
 			throw runtime_error("fcntl error");
 		}
-		struct epoll_event event = epoll_manager.get_Epoll_Event();
+		struct epoll_event event; //= epoll_manager.get_Epoll_Event();
 		event.events = EPOLLIN | EPOLLOUT;
 		event.data.fd = clientSocket;
 		epoll_ctl(epoll_manager.get_Epoll_Fd(), EPOLL_CTL_ADD, clientSocket, &event);
@@ -88,7 +90,7 @@ Client *accept_connection(Server *serv)
 	return client;
 }
 
-string process_request(string &request_str)
+string process_request(const string &request_str)
 {
 	Parser parser(request_str);
 	parser.parse_Request();
@@ -112,15 +114,17 @@ string process_request(string &request_str)
 void handle_Read(struct epoll_event &event, Client &client)
 {
 	char buffer[1024];
-	(void)client;
-	stringstream entire_request;
+	
 	while (true)
 	{
 		ssize_t count = read(event.data.fd, buffer, sizeof(buffer));		
 		if (count == -1)
 		{
-			string request_content = entire_request.str();
-			string response_str = process_request(request_content);
+			//string request_content = entire_request.str();
+			client.set_Response(process_request(client.get_Buffer()));
+			stringstream portStr;
+			portStr << endl << "Port:" << client.get_Server()->get_port();
+			client.set_Response(client.get_Response() + portStr.str());
 			/* 1. call REQUEST_PARSER with entire_request.str() as parameter
 			 *it should return string to respond to the client.*/
 
@@ -140,28 +144,15 @@ void handle_Read(struct epoll_event &event, Client &client)
 		}
 		else
 		{
-			entire_request << buffer;
+			//entire_request << buffer;
+			client.append_Buffer(buffer, count);
 		}
 	}
 }
 
 bool handle_Write(struct epoll_event &event, Client &client)
 {
-	(void)event;
-
-	stringstream ss;
-	stringstream sss;
-	ss << client.get_Server()->get_port();
-
-	std::string body = "Hell world! na porcie: " + ss.str();
-	sss << body.length();
-
-	std::string response =
-		"HTTP/1.1 200 OK\r\n"
-		"Content-Type: text/html\r\n"
-		"Content-Length: " + sss.str() + "\r\n"
-		"Connection: close\r\n"
-		"\r\n" + body;
+	string response = client.get_Response();
 
 	if (write(event.data.fd, response.c_str(), response.length()) != (ssize_t)response.length())
 		cout << "Invalid write" << endl;
@@ -194,6 +185,7 @@ void EpollManager::epoll_Loop(void)
 				map<int, Client*>::iterator it = client_map.find(fd);
 				if (it != client_map.end())
 				{
+					cout << "EPOLLERR | ERROR\n";
 					delete it->second;
 					client_map.erase(it);
 				}
@@ -213,6 +205,8 @@ void EpollManager::epoll_Loop(void)
 			}
 			if (active_events[i].events & EPOLLOUT)
 			{
+				if (client_map.find(fd)->second->get_Response().length() <= 0)
+					continue;
 				std::map<int, Client*>::iterator it = client_map.find(fd);
 				if (it != client_map.end())
 				{
@@ -220,6 +214,7 @@ void EpollManager::epoll_Loop(void)
 					{
 						epoll_ctl(this->epoll_fd, EPOLL_CTL_DEL, fd, NULL);
 						close(fd);
+						cout << "ERROR\n";
 						delete it->second;
 						client_map.erase(it);
 					}
@@ -234,6 +229,7 @@ void EpollManager::epoll_Loop(void)
 	for (it = client_map.begin(); it != client_map.end(); ++it)
 	{
 		close(it->first);
+		cout << "ERROR 2\n";
 		delete it->second;
 	}
 	client_map.clear();
