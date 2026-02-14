@@ -6,7 +6,7 @@
 /*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:30 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/13 17:49:33 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/14 16:32:54 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,16 +103,16 @@ bool Route::is_cgi()
 
 FsType Route::get_filesystem_type()
 {
-    struct stat buffer; // stat holds metadata about file
+    struct stat buffer;
     
-    if (stat(filesystem_path.c_str(), &buffer) != 0) // buffer.st_mode contains data about file type and permissions;
-        return FS_NOT_FOUND; // 0
+    if (stat(filesystem_path.c_str(), &buffer) != 0)
+        return FS_NOT_FOUND;
     
     if (S_ISREG(buffer.st_mode))
-        return FS_IS_FILE; // 1
+        return FS_IS_FILE;
 
     if (S_ISDIR(buffer.st_mode))
-        return FS_IS_DIR; // 2
+        return FS_IS_DIR;
         
     return FS_NOT_FOUND;
 }
@@ -137,26 +137,54 @@ string Route::trim(const string& str)
     return str.substr(start, end - start + 1);
 }
 
-// string Route::serve_directory_listing(string& filesystem_path)
-// {
-//     DIR *dir = opendir(filesystem_path.c_str());
-//     if (!dir)
-//         return error_response("500.html");
+string Route::serve_directory_listing(string& filesystem_path)
+{
+    DIR *dir = opendir(filesystem_path.c_str());
+    if (!dir)
+        return error_response("www/errors/500.html");
 
-//     ostringstream body;
-//     body << "<html>\n";
-//     body << "<head><title>Index of " << url << "</title></head>\n";
-//     body << "<body>\n";
-//     body << "<h1>Index of " << url << "</h1>\n";
-//     body << "<hr>\n";
-//     body << "<ul>\n";
+    ostringstream body;
+    body << "<html>\n";
+    body << "<head><title>Index of " << url << "</title></head>\n";
+    body << "<body>\n";
+    body << "<h1>Index of " << url << "</h1>\n";
+    body << "<hr>\n";
+    body << "<ul>\n";
 
-//     // struct dirent *entry;
-//     // while ((entry == readdir(dir)) != NULL)
-//     // {
-//     //     string name = entry->d_name;
-//     // }
-// }
+    struct dirent *entry = NULL;
+    while ((entry = readdir(dir)) != NULL)
+    {
+        string name = entry->d_name;
+
+        if (name == ".")
+            continue ;
+
+        body << "<li><a href=\"" << url;
+
+        if (url[url.length() - 1] != '/')
+            body << "/";
+
+        body << name << "\">" << name << "</a></li>\n";
+    }
+    
+    body << "</ul>\n";
+    body << "<hr>\n";
+    body << "</body>\n";
+    body << "</html>\n";
+
+    closedir(dir);
+
+    string body_str = body.str();
+
+    ostringstream response;
+    response << "HTTP/1.1 200 OK\r\n";
+    response << "Content-Type: text/html\r\n";
+    response << "Content-Length: " << body_str.size() << "\r\n";
+    response << "Connection: close\r\n\r\n";
+    response << body_str;
+
+    return response.str();
+}
 
 string Route::handle_autoindex()
 {
@@ -165,20 +193,20 @@ string Route::handle_autoindex()
 
     index_path = filesystem_path + "/" + url;
 
-    if (autoindex == "off") // if autoindex off - serve index.html
+    if (autoindex == "off")
     {
-        if (stat(filesystem_path.c_str(), &st) == 0 && S_ISREG(st.st_mode))
+        if (stat(index_path.c_str(), &st) == 0 && S_ISREG(st.st_mode))
         {
-            filesystem_path = index_path;   
-            return read_static_file(filesystem_path);
+            filesystem_path = index_path;
+            return read_static_file(index_path);
         }
         else
-            return error_response("404.html"); 
+            return error_response("www/errors/404.html");
     }
-    // else if (autoindex == "on") // if autoindex on - serve index.html
-    //     return serve_directory_listing(filesystem_path);
-    
-    return error_response("500.html");
+    else if (autoindex == "on")
+        return serve_directory_listing(filesystem_path);
+
+    return error_response("www/errors/500.html");
 }
 
 string Route::find_abs_path(string file)
@@ -199,8 +227,7 @@ string Route::error_response(string error_file)
     string error_file_abs_path;
 
     error_file_abs_path = find_abs_path(error_file);
-
-    // read error file
+    
     ifstream file(error_file_abs_path.c_str());
     if (!file.is_open())
     {
@@ -218,21 +245,15 @@ string Route::read_static_file(string filesystem_path)
 {
     ifstream file(filesystem_path.c_str());
 
-    // could not open
     if (!file.is_open())
-    {
-        // error 500
-        return error_response("500.html");
-    }
+        return error_response("www/errors/500.html");
 
-    // read file into a string
     ostringstream buffer;
-    buffer << file.rdbuf(); // read entire file into buffer
+    buffer << file.rdbuf();
     string file_content = buffer.str();
     
     string content_type = "text/html";
 
-    // build headers
     ostringstream headers;
     headers << "HTTP/1.1 200 OK\r\n";
     headers << "Content-Type: " << content_type << "\r\n";
@@ -249,51 +270,40 @@ string Route::serve_static_file()
     struct stat st;
 
     if (stat(filesystem_path.c_str(), &st) == 0 && S_ISREG(st.st_mode))
-    {
-        cout << "Filepath is normal file" << endl;
         return read_static_file(filesystem_path);
-    }
     else
-    {
-        // 404 error;
-        return error_response("404.html");
-    }
+        return error_response("www/errors/404.html");
 }
 
-bool Route::is_valid_request()
+void Route::is_valid_request()
 {
     bool method_is_allowed;
     bool body_matches_size;
 
-    // 1. CHECK ALLOWED METHODS:
     method_is_allowed = is_allowed_method();
-    cout << "method_is_allowed: " << method_is_allowed << endl;
-    // if (!method_is_allowed)
-    // send response with 405 ERROR
+    // cout << "method_is_allowed: " << method_is_allowed << endl;
+    if (!method_is_allowed)
+        error_response("www/errors/405.html");
 
-    // 2. IF THERE'S A BODY, VERIFY ITS SIZE AGAINST CLIENT_MAX_BODY_SIZE:
     body_matches_size = server.does_body_match_size();
-    cout << "body_matches_size: " << body_matches_size << endl;
-    // if (!body_matches_size)
-    // send response with 413 ERROR
-
-    return true;
+    // cout << "body_matches_size: " << body_matches_size << endl;
+    if (!body_matches_size)
+        error_response("www/errors/413.html");
 }
 
 string Route::form_response()
 {
     FsType filesystem_status;
-    bool request_is_valid;
 
-    request_is_valid = is_valid_request();
-    cout << "request_is_valid: " << request_is_valid << endl;
+    is_valid_request();
+    // cout << "request_is_valid: " << request_is_valid << endl;
 
     filesystem_status = get_filesystem_type();
-    cout << "filesystem_status: " << filesystem_status << endl;
+    // cout << "filesystem_status: " << filesystem_status << endl;
     switch(filesystem_status)
     {
         case FS_NOT_FOUND:
-            return error_response("404.html");
+            return error_response("www/errors/404.html");
         case FS_IS_FILE:
             // if (is_cgi())
             // {
@@ -301,9 +311,9 @@ string Route::form_response()
             //     cgi.run();   
             // }
             // else
-            return serve_static_file(); // serve static file
+            return serve_static_file();
         case FS_IS_DIR:
-            return handle_autoindex(); // handle autoindex
+            return handle_autoindex();
     }
     return "";
 }

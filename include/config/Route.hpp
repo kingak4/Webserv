@@ -6,7 +6,7 @@
 /*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:13:02 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/13 16:29:13 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/14 16:33:57 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,7 @@ class Route
         bool is_cgi();
         FsType get_filesystem_type();
         string trim(const string& str);
-        bool is_valid_request();
+        void is_valid_request();
         string form_response();
 
         // GETTERS
