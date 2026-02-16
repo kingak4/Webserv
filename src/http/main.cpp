@@ -494,7 +494,8 @@ int main(int ac, char** av)
     }
 
     // string req1 = "GET /index.html?user=Alice HTTP/1.1\r\nHost: super_webserv\r\n\r\n";
-    string req1 = "GET /uploads HTTP/1.1\r\nHost: super_webserv\r\n\r\n";
+    // string req1 = "GET /uploads HTTP/1.1\r\nHost: super_webserv\r\n\r\n";
+    string req1 = "GET /cgi/test.py HTTP/1.1\r\nHost: cgi_webserv\r\n\r\n";
 
     Parser parser(req1);
     parser.parse_Request();

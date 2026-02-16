@@ -1,28 +1,29 @@
-// # ifndef CGI_HANDLER_HPP
-// # define CGI_HANDLER_HPP
+# ifndef CGI_HANDLER_HPP
+# define CGI_HANDLER_HPP
 
-// #include <iostream>
-// #include "../config/Route.hpp"
-// #include "../http/Request.hpp"
+#include <iostream>
+#include <unistd.h>
+#include "../config/Route.hpp"
+#include "../http/Request.hpp"
 
-// using namespace std;
+using namespace std;
 
-// class CgiHandler
-// {
-//     private:
-//         Route route;
-//         Request request;
+class Route;
 
-//         script_path;
-//         request_method;
-//         query_string;
-//         body;
+class CgiHandler
+{
+    private:
+        Route& route;
+        Request& request;
 
-//     public:
-//         CgiHandler(Route& route, Request& request);
-//         ~CgiHandler();
+        string script_path;
 
-//         void run();
-// };
+    public:
+        CgiHandler(Route& route, Request& request);
+        ~CgiHandler();
 
-// #endif
+        bool does_file_exist();
+        string run();
+};
+
+#endif

@@ -6,7 +6,7 @@
 /*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:13:02 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/14 16:33:57 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/15 16:01:29 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,23 +37,25 @@ enum FsType
 
 class Route 
 {
-    Config &server;
+    private: 
+        Config& server;
+        Request& request;
 
-    // location data
-    string route_name;
-    string url;
-    vector<string> allowed_methods;
-    string autoindex;
+        // location data
+        string route_name;
+        string url;
+        vector<string> allowed_methods;
+        string autoindex;
 
-    string filesystem_path;
+        string filesystem_path;
 
-    // request data
-    string request_method;
-    string request_full_path;
-    string request_path;
-    string request_query;
-    string request_version;
-    map<string, string> request_headers;
+        // request data
+        string request_method;
+        string request_full_path;
+        string request_path;
+        string request_query;
+        string request_version;
+        map<string, string> request_headers;
 
     public:
         // Route(Config& server_block);
@@ -84,6 +86,8 @@ class Route
         const string& get_url() const;
         const vector<string>& get_allowed_methods() const;
         const string& get_autoindex() const;
+        const string& get_filesystem_path() const;
+        const string& get_request_query() const;
 };
 
 #endif

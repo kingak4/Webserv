@@ -6,13 +6,13 @@
 /*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:30 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/14 16:32:54 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/16 10:49:44 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/config/Route.hpp"
 
-Route::Route(Location& loc, Request& request, Config& server_block) : server(server_block)
+Route::Route(Location& loc, Request& request, Config& server_block) : server(server_block), request(request)
 {
     route_name = loc.route_name;
     url = loc.url;
@@ -96,7 +96,7 @@ bool Route::is_allowed_method()
 
 bool Route::is_cgi()
 {
-    if (url.find("/usr/bin/") == 0 or url.find(".py") == 0)
+    if (url.find("/usr/bin/") == 0 or request_path.find(".py") == 0)
         return true;
     return false;
 }
@@ -305,13 +305,13 @@ string Route::form_response()
         case FS_NOT_FOUND:
             return error_response("www/errors/404.html");
         case FS_IS_FILE:
-            // if (is_cgi())
-            // {
-            //     CgiHandler cgi(route, request);
-            //     cgi.run();   
-            // }
-            // else
-            return serve_static_file();
+            if (is_cgi())
+            {
+                CgiHandler cgi(*this, request);
+                return cgi.run();   
+            }
+            else
+                return serve_static_file();
         case FS_IS_DIR:
             return handle_autoindex();
     }
@@ -336,4 +336,14 @@ const vector<string>& Route::get_allowed_methods() const
 const string& Route::get_autoindex() const
 {
     return autoindex;
+}
+
+const string& Route::get_filesystem_path() const
+{
+    return filesystem_path;
+}
+
+const string& Route::get_request_query() const
+{
+    return request_query;
 }
