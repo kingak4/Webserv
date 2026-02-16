@@ -6,7 +6,7 @@
 /*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:30 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/16 10:49:44 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/16 15:13:24 by apple            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -275,7 +275,7 @@ string Route::serve_static_file()
         return error_response("www/errors/404.html");
 }
 
-void Route::is_valid_request()
+bool Route::is_valid_request()
 {
     bool method_is_allowed;
     bool body_matches_size;
@@ -283,23 +283,69 @@ void Route::is_valid_request()
     method_is_allowed = is_allowed_method();
     // cout << "method_is_allowed: " << method_is_allowed << endl;
     if (!method_is_allowed)
-        error_response("www/errors/405.html");
+        return false;
 
     body_matches_size = server.does_body_match_size();
     // cout << "body_matches_size: " << body_matches_size << endl;
     if (!body_matches_size)
-        error_response("www/errors/413.html");
+        return false;
+    
+    return true;
+}
+
+string Route::handle_delete()
+{
+    struct stat st;
+
+    // check if file exists
+    if (stat(filesystem_path.c_str(), &st) != 0)
+        return error_response("www/errors/404.html");
+
+    // make sure it's a regular file
+    if (!S_ISREG(st.st_mode))
+        return error_response("www/errors/403.html");
+
+    // delete using unlink
+    if (unlink(filesystem_path.c_str()) != 0)
+        return error_response("www/errors/403.html"); // permission denied
+
+    // return 204 no content
+    ostringstream headers;
+    headers << "HTTP/1.1 204 No Content\r\n";
+    headers << "Content-Length: 0\r\n";
+    headers << "Connection: close\r\n";
+    headers << "\r\n";
+
+    return headers.str();
+}
+
+string Route::handle_upload()
+{
+    return "Handle file uploads here";
 }
 
 string Route::form_response()
 {
     FsType filesystem_status;
 
-    is_valid_request();
+    if (!is_valid_request())
+    {
+        if (!is_allowed_method())
+            return error_response("www/errors/405.html");
+        else
+            return error_response("www/errors/413.html");
+    }
     // cout << "request_is_valid: " << request_is_valid << endl;
 
     filesystem_status = get_filesystem_type();
     // cout << "filesystem_status: " << filesystem_status << endl;
+    
+    if (request.get_Method() == "DELETE")
+        return handle_delete();
+
+    if (request.get_Method() == "POST" && !is_cgi())
+        return handle_upload(); // write file to disk
+        
     switch(filesystem_status)
     {
         case FS_NOT_FOUND:
@@ -315,7 +361,7 @@ string Route::form_response()
         case FS_IS_DIR:
             return handle_autoindex();
     }
-    return "";
+    return error_response("www/errors/500.html");
 }
 
 const string& Route::get_route_name() const
