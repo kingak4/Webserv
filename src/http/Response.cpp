@@ -6,7 +6,7 @@
 /*   By: kikwasni <kikwasni@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/03 11:25:34 by kikwasni          #+#    #+#             */
-/*   Updated: 2026/02/13 11:04:28 by kikwasni         ###   ########.fr       */
+/*   Updated: 2026/02/17 12:32:52 by kikwasni         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,45 +106,24 @@ void Response::finalize_Response()
 
 // void Response::build_Error_Response(int code, const ServerConfig& conf)
 // {
+//		status_code = code;
+//		body = "";
 // }
+
 
 //void build_Response(const Request& request, const Route& route, const ServerConfig&)
-{
+//{
 	// reset();
 	
-
 	// if (method == GET)
-	// 	handle_Get();
+		// 	handle_Get();
 	// else if (method == POST)
-	// 	handle_Post()
+		// 	handle_Post()
 	// else if (metoda == DELETE)
-	// 	handle_Delete()
+		// 	handle_Delete()
 	// else
-	// 	build_Error_Response(405);
+		// 	build_Error_Response(405);
 	// if (status_code  == 0)
-	// 	build_Error_Response(500)
+		// 	build_Error_Response(500)
 	// finalize_Response();
-}
-
-// void Response::handle_Get(const Request& request, const Route& route)
-// {
-// 	string path;
-// 	//  path = route.root + request.uri
-// 	if (path.empty())
-// 	{
-// 		//         build_Error_Response(404)
-// 		return;
-// 	}
-// }
-
-// void Response::handle_Post(const Request& request, const Route& route)
-// {
-	
-// }
-
-// void Response::handle_Delete(const Request& request, const Route& route)
-// {
-
-// }
-
-// need to do this functions with Alina
+//}

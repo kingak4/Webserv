@@ -6,50 +6,50 @@
 /*   By: kikwasni <kikwasni@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/12 10:22:55 by kikwasni          #+#    #+#             */
-/*   Updated: 2026/02/13 11:34:00 by kikwasni         ###   ########.fr       */
+/*   Updated: 2026/02/17 12:35:38 by kikwasni         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "http/HttpUtils.hpp"
 
-bool file_Exists(const string &path)
-{
-	struct stat file_info;
-	if (path.empty())
-		return (false);
-	if (stat(path.c_str(), &file_info) == 0)
-		return (true);
-	return (false);
-}
+// bool file_Exists(const string &path)
+// {
+// 	struct stat file_info;
+// 	if (path.empty())
+// 		return (false);
+// 	if (stat(path.c_str(), &file_info) == 0)
+// 		return (true);
+// 	return (false);
+// }
 
-bool is_Directory(const string &path)
-{
-	struct stat file_info;
-	if (path.empty())
-		return (false);
-	if (stat(path.c_str(), &file_info) == -1)
-		return (false);
-	if (S_ISDIR(file_info.st_mode))
-		return (true);
-	return (false);
-}
+// bool is_Directory(const string &path)
+// {
+// 	struct stat file_info;
+// 	if (path.empty())
+// 		return (false);
+// 	if (stat(path.c_str(), &file_info) == -1)
+// 		return (false);
+// 	if (S_ISDIR(file_info.st_mode))
+// 		return (true);
+// 	return (false);
+// }
 
-string read_File(const string &path)
-{
-	if (path.empty())
-		return (string());
-	int fd = open(path.c_str(), O_RDONLY);
-	if (fd == -1)
-		return (string());
-	string content;
-	char c;
-	while (read(fd, &c, 1) > 0)
-	{
-		content += c;
-	}
-	close(fd);
-	return (content);
-}
+// string read_File(const string &path)
+// {
+// 	if (path.empty())
+// 		return (string());
+// 	int fd = open(path.c_str(), O_RDONLY);
+// 	if (fd == -1)
+// 		return (string());
+// 	string content;
+// 	char c;
+// 	while (read(fd, &c, 1) > 0)
+// 	{
+// 		content += c;
+// 	}
+// 	close(fd);
+// 	return (content);
+// }
 
 string get_Mime_Type(const string &path)
 {
@@ -95,44 +95,40 @@ string get_Current_Date_RFC()
 	return (std::string(buffer));
 }
 
-string generateAutoindex(const std::string &directoryPath, const std::string &requestUri)
-{
+// string generateAutoindex(const std::string &directoryPath, const std::string &requestUri)
+// {
 
-	DIR *dir = opendir(directoryPath.c_str());
-	if (dir == NULL)
-		return (string());
-	string html = "";
-	html += "<html>";
-	html += "<head><title>Index of " + requestUri + "</title></head>";
-	html += "<body>";
-	html += "<h1>Index of " + requestUri + "</h1>";
-	html += "<ul>"; 
-	struct dirent *entry;
-	while ((entry = readdir(dir)) != NULL)
-	{
-		string fileName = entry->d_name;
-		if (fileName == "." || fileName == "..")
-			continue;
-		string fullPath = directoryPath + "/" + fileName;
-		struct stat fileInfo;
-		if (stat(fullPath.c_str(), &fileInfo) == 0 && S_ISDIR(fileInfo.st_mode))
-		{
-			fileName += "/";
-		}
-		string fullLink = requestUri + fileName; 
-		html += "<li>";
-		html += "<a href=\"" + fullLink + "\">";
-		html += fileName;
-		html += "</a>";
-		html += "</li>";
-	}
-	closedir(dir);
-	html += "</ul>";
-	html += "</body>";
-	html += "</html>";
-	return (html);
-}
-
-string resolve_Path(const Request &request, const Route &route);
-
-// do it withc Alina;
+// 	DIR *dir = opendir(directoryPath.c_str());
+// 	if (dir == NULL)
+// 		return (string());
+// 	string html = "";
+// 	html += "<html>";
+// 	html += "<head><title>Index of " + requestUri + "</title></head>";
+// 	html += "<body>";
+// 	html += "<h1>Index of " + requestUri + "</h1>";
+// 	html += "<ul>"; 
+// 	struct dirent *entry;
+// 	while ((entry = readdir(dir)) != NULL)
+// 	{
+// 		string fileName = entry->d_name;
+// 		if (fileName == "." || fileName == "..")
+// 			continue;
+// 		string fullPath = directoryPath + "/" + fileName;
+// 		struct stat fileInfo;
+// 		if (stat(fullPath.c_str(), &fileInfo) == 0 && S_ISDIR(fileInfo.st_mode))
+// 		{
+// 			fileName += "/";
+// 		}
+// 		string fullLink = requestUri + fileName; 
+// 		html += "<li>";
+// 		html += "<a href=\"" + fullLink + "\">";
+// 		html += fileName;
+// 		html += "</a>";
+// 		html += "</li>";
+// 	}
+// 	closedir(dir);
+// 	html += "</ul>";
+// 	html += "</body>";
+// 	html += "</html>";
+// 	return (html);
+// }
