@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Route.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
+/*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:30 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/16 15:13:24 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/17 12:38:28 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -275,7 +275,7 @@ string Route::serve_static_file()
         return error_response("www/errors/404.html");
 }
 
-bool Route::is_valid_request()
+bool Route::is_valid_request() // mine
 {
     bool method_is_allowed;
     bool body_matches_size;
@@ -331,7 +331,7 @@ string Route::form_response()
     if (!is_valid_request())
     {
         if (!is_allowed_method())
-            return error_response("www/errors/405.html");
+            return error_response("www/errors/405.html"); // send status code, error page name, path to the dir
         else
             return error_response("www/errors/413.html");
     }
@@ -349,17 +349,17 @@ string Route::form_response()
     switch(filesystem_status)
     {
         case FS_NOT_FOUND:
-            return error_response("www/errors/404.html");
+            return error_response("www/errors/404.html"); // true / false
         case FS_IS_FILE:
-            if (is_cgi())
+            if (is_cgi()) // mine
             {
                 CgiHandler cgi(*this, request);
                 return cgi.run();   
             }
             else
-                return serve_static_file();
+                return serve_static_file(); // mine
         case FS_IS_DIR:
-            return handle_autoindex();
+            return handle_autoindex(); 
     }
     return error_response("www/errors/500.html");
 }

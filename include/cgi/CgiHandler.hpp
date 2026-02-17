@@ -1,6 +1,8 @@
 # ifndef CGI_HANDLER_HPP
 # define CGI_HANDLER_HPP
 
+#include <string.h>
+#include <sys/wait.h>
 #include <iostream>
 #include <unistd.h>
 #include "../config/Route.hpp"
