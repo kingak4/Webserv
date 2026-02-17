@@ -6,7 +6,7 @@
 /*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:30 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/17 17:06:46 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/02/17 17:50:37 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,7 @@ string Route::retrieve_request_query(const string& request_full_path)
 bool Route::is_valid_request_path()
 {
     cout << "url: " << url << endl;
-    return request_path == url;
+    return request_path.find(url) == 0;
 }
 
 bool Route::is_allowed_method()
@@ -229,7 +229,7 @@ string Route::error_response(string error)
     body = buffer.str();
 
     ostringstream response;
-    response << "HTTP/1.1" << error << "\r\n";
+    response << "HTTP/1.1 " << error << "\r\n";
     response << "Content-Type: text/html\r\n";
     response << "Content-Length: " << body.length() << "\r\n";
     response << "\r\n";
@@ -280,7 +280,6 @@ string Route::read_static_file(string filesystem_path)
     headers << "Content-Type: " << content_type << "\r\n";
     headers << "Content-Length: " << file_content.size() << "\r\n";
     headers << "Connection: close\r\n\r\n";
-    headers << "\r\n";
 
     string response = headers.str() + file_content;
     return response;

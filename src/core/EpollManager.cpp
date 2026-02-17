@@ -80,7 +80,7 @@ Client *accept_connection(Server *serv)
 	return client;
 }
 
-Route* get_route_block(ServerData server, Request& request, Config server_block)
+Route* get_route_block(ServerData server, Request& request, Config& server_block)
 {
     vector<Location>& locations = server.locations;
     string path = request.get_Path();
@@ -147,7 +147,7 @@ string find_requested_server(Request& request, ConfigParser& config_parser, Clie
 
     if (server_block && route_block)
     {
-		cout << "server_block: " << server_block->get_server_name() << server_block->get_port() << server_block->get_host() << endl;
+		cout << "server_block: " << server_block->get_root_dir() << endl;
 		cout << "route_block: " << route_block->get_route_name() << route_block->get_url() << endl;
         response = route_block->form_response();
         if (response == "")
