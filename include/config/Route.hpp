@@ -6,7 +6,7 @@
 /*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:13:02 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/17 15:09:59 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/02/17 16:34:18 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,14 +58,12 @@ class Route
         map<string, string> request_headers;
 
     public:
-        // Route(Config& server_block);
         Route(Location& loc, Request& request, Config& server_block);
         ~Route();
 
         string retrieve_request_path(const string& request_full_path);
         string retrieve_request_query(const string& request_full_path);
         
-        string normalize_path(const string &request_path);
         string find_abs_path(string file);
         string read_static_file(string filesystem_path);
         string error_response(string error_file);
@@ -91,6 +89,7 @@ class Route
         const string& get_autoindex() const;
         const string& get_filesystem_path() const;
         const string& get_request_query() const;
+        const string& get_request_path() const;
 };
 
 #endif

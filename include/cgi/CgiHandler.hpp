@@ -25,6 +25,8 @@ class CgiHandler
         ~CgiHandler();
 
         bool does_file_exist();
+        string build_cgi_response(string& output);
+        string trim(const string& str);
         string run();
 };
 

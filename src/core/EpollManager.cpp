@@ -147,14 +147,13 @@ string find_requested_server(Request& request, ConfigParser& config_parser, Clie
 
     if (server_block && route_block)
     {
-		// cout << "server_block: " << server_block->get_server_name() << server_block->get_port() << server_block->get_host() << endl;
-		// cout << "route_block: " << route_block->get_route_name() << route_block->get_url() << endl;
+		cout << "server_block: " << server_block->get_server_name() << server_block->get_port() << server_block->get_host() << endl;
+		cout << "route_block: " << route_block->get_route_name() << route_block->get_url() << endl;
         response = route_block->form_response();
         if (response == "")
         {
             cout << "response is NULL" << endl;
         }
-		cout << "RESPONSE" << endl;
 		cout << endl;
         cout << response << endl;
 
@@ -171,15 +170,12 @@ string find_requested_server(Request& request, ConfigParser& config_parser, Clie
 
 string process_request(const string &request_str, Client &client, ConfigParser &config_parser)
 {
-	// ConfigParser config_parser;
-
 	Parser parser(request_str);
 	parser.parse_Request();
 	
 	Request request;
     request.buildFromParser(parser);
 
-	// GET ROUTE BLOCK AND LOCATION
     return find_requested_server(request, config_parser, client);
 
 	// cout << "Request recived: " << parser.get_Method() << " " << parser.get_Path() << " on port " << client.get_Server()->get_port() << "." << endl;
