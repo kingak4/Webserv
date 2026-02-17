@@ -1,8 +1,6 @@
 #include "../../include/core/Server.hpp"
-#include <cerrno>
-#include <iterator>
+#include "../../include/core/EpollManager.hpp"
 using namespace std;
-
 
 //Constructors
 Server::Server(int port, EpollManager &manager) :  port(port), epoll_manager(manager)
@@ -11,7 +9,9 @@ Server::Server(int port, EpollManager &manager) :  port(port), epoll_manager(man
 }
 Server::~Server(void) 
 {
-	cout << BLUE << "Closing port " << this->port << "." << RESET << endl;  
+	stringstream ss;
+	ss << "Closing port " << this->port << ".";  
+	Console::message(ss.str(), SERVER, false);
 }
 
 Server &Server::operator=(const Server &other)
@@ -27,16 +27,12 @@ Server::Server(const Server &other) : port(other.get_port()), epoll_manager(othe
 {
 	this->port = other.get_port();
 	this->socket_fd = other.get_socket();
-	cout << "Server copy constructor!" << endl;
 }
 
 //Member getters
 int Server::get_port(void) const {return port;}
 int Server::get_socket(void) const {return socket_fd;}
 EpollManager &Server::get_Epoll_Manager(void) const {return epoll_manager;}
-
-
-//Helper functions
 
 //Memeber functions
 void Server::server_init(void)
@@ -47,7 +43,12 @@ void Server::server_init(void)
     serverAddress.sin_addr.s_addr = INADDR_ANY;
 
     this->socket_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
-	cout << BLUE << "Port " << this->port << " socket created succesfuly." << RESET << endl;
+
+	{
+	stringstream ss;
+	ss << "Port " << this->port << " socket created succesfuly.";
+	Console::message(ss.str(), SERVER, false);
+	}
 
 	int opt = 1;
 	if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
@@ -61,7 +62,12 @@ void Server::server_init(void)
 		close(socket_fd);
 		throw runtime_error("binding error");
 	}
-	cout << BLUE << "Port " << this->port << " socket bind() succesful." << RESET << endl;
+
+	{
+	stringstream ss;
+	ss << "Port " << this->port << " socket bind() succesful.";
+	Console::message(ss.str(), SERVER, false);
+	}
 
 	if (listen(socket_fd, 5) == -1)
 	{
@@ -69,5 +75,10 @@ void Server::server_init(void)
 		ss << "listen() error on port " << port <<  ". error code: " << errno;
 		throw runtime_error(ss.str());
 	}
-	cout << BLUE << "Port " << this->port << " listen() succesful." << RESET << endl;
+
+	{
+	stringstream ss;
+	ss << "Port " << this->port << " listen() succesful.";
+	Console::message(ss.str(), SERVER, false);
+	}
 }

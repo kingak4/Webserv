@@ -1,20 +1,11 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include <sys/epoll.h>
-#include <iostream>
-#include <stdexcept>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <cerrno>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sstream>
-#include <vector>
-
-//tests
 #include "../../include/http/Parser.hpp"
 #include "Client.hpp"
+
+#include <netinet/in.h>
+#include <fcntl.h>
 
 class EpollManager;
 

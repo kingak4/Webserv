@@ -1,13 +1,39 @@
 #include "../../include/core/EpollManager.hpp"
-#include <iterator>
 
 // sig_atomic_t: an integer type that can be accessed atomically
 volatile sig_atomic_t g_server_running = 1;
 
+void Console::message(const string &message, Message_type type, bool pre_newline)
+{
+	stringstream ss;
+	if (pre_newline)
+		cout << endl;
+	switch (type)	
+	{
+		case SERVER:
+			cout << BLUE << message << RESET << endl;
+			break;
+		case IMPORTANT:
+			cout << BOLD_BLUE << message << RESET << endl;
+			break;
+		case LOG:
+			cout << message << endl;
+			break;
+		case SUCCES:
+			cout << GREEN << message << RESET << endl;
+			break;
+		case ERROR:
+			cerr << RED << message << RESET << endl;
+			break;
+	}
+}
+
 void signal_handler(int signum) {
     (void)signum; 
     g_server_running = 0; 
-	cout << endl << BLUE << "SIGINT signal detected: " << BOLD_BLUE << "clean " << "shutdown initialized." << RESET << endl;
+	Console::message("SIGINT signal detected:", IMPORTANT, true);
+	Console::message("Clean shutdown initialized.", IMPORTANT, false);
+	Console::message("", IMPORTANT, false);
 }
 
 EpollManager::EpollManager(void) {  }
@@ -19,7 +45,7 @@ EpollManager::~EpollManager(void)
 	for (it = this->servers_running.begin(); it != this->servers_running.end(); ++it)
 		delete it->second;
 	this->servers_running.clear();
-	cout << BLUE << "Closing epoll file descriptor." << RESET << endl;
+	Console::message("Closing epoll file descriptor.", IMPORTANT, true);
 	close(this->epoll_fd);
 }
 
@@ -49,7 +75,11 @@ void EpollManager::init_Epoll(vector<ServerData> &config_splitted)
 		this->event.data.fd = socket_fd;
 		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, socket_fd, &event) == -1)
 			throw runtime_error("epoll_ctl ADD");
-		cout << BLUE << "Port " << server->get_port() << " opened." << RESET << endl << endl;
+
+		stringstream ss;
+		ss << "Port " << server->get_port() << " opened.";
+		Console::message(ss.str(), SERVER, true);
+
 		this->servers_running.insert(make_pair(socket_fd, server));
 	}
 }
@@ -65,7 +95,10 @@ Client *accept_connection(Server *serv)
 	EpollManager &epoll_manager = serv->get_Epoll_Manager();
 	if (clientSocket != -1)
 	{
-		cout << "New Client connected on port " << serv->get_port() << "." << endl;
+		stringstream ss;
+		ss << "New Client connected on port " << serv->get_port() << ".";
+		Console::message(ss.str(), SERVER, false);
+
 		int status = fcntl(clientSocket, F_SETFL, O_NONBLOCK);
 		if (status == -1)
 		{
@@ -85,7 +118,9 @@ string process_request(const string &request_str, Client &client)
 	Parser parser(request_str);
 	parser.parse_Request();
 	
-	cout << "Request recived: " << parser.get_Method() << " " << parser.get_Path() << " on port " << client.get_Server()->get_port() << "." << endl;
+	stringstream ss;
+	ss << "Request recived: " << parser.get_Method() << " " << parser.get_Path() << " on port " << client.get_Server()->get_port() << ".";
+	Console::message(ss.str(), LOG, true);
 	if (parser.is_Valid())
 		return "HTTP/1.1 200 OK\r\n\r\nHello World";
 	else
@@ -110,7 +145,10 @@ void handle_Read(struct epoll_event &event, Client &client)
 		}
 		else if (count == 0)
 		{
-			cout << "Client: " << event.data.fd << " disconnected." << endl;
+			stringstream ss;
+			ss << "Client: " << event.data.fd << " disconnected." << endl;
+			Console::message(ss.str(), SERVER, false);
+
 			close(event.data.fd);
 			break;
 		}
@@ -124,7 +162,7 @@ bool handle_Write(struct epoll_event &event, Client &client)
 	string response = client.get_Response();
 
 	if (write(event.data.fd, response.c_str(), response.length()) != (ssize_t)response.length())
-		cout << "Invalid write" << endl;
+		Console::message("Invalid write.", ERROR, false);
 	return true;
 }
 
