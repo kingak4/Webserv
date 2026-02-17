@@ -80,19 +80,116 @@ Client *accept_connection(Server *serv)
 	return client;
 }
 
-string process_request(const string &request_str, Client &client)
+Route* get_route_block(ServerData server, Request& request, Config server_block)
 {
+    vector<Location>& locations = server.locations;
+    string path = request.get_Path();
+    string route_path;
+    size_t pos;
+
+    if ((pos = path.find("?")) != string::npos)
+        route_path = path.substr(0, pos);
+    else
+        route_path = path;
+
+    for (size_t i = 0; i < locations.size(); ++i)
+    {
+        if (route_path == locations[i].route_name)
+            return new Route(locations[i], request, server_block);
+    }
+    return NULL;
+}
+
+string find_requested_server(Request& request, ConfigParser& config_parser, Client &client)
+{
+    string response;
+
+    map<string, string> headers = request.get_Headers();
+    vector<ServerData> servers = config_parser.get_config_servers();
+    
+    Config* server_block = NULL;
+    Route* route_block = NULL;
+
+	int client_port = client.get_Server()->get_port();
+
+    vector<ServerData> candidates;
+    for (size_t i = 0; i < servers.size(); ++i)
+    {
+        if (servers[i].port == client_port)
+            candidates.push_back(servers[i]);
+    }
+
+    for (size_t i = 0; i < candidates.size(); i++)
+    {
+        if (candidates[i].server_name == headers["host"])
+        {
+            server_block = new Config(candidates[i], request);
+            route_block = get_route_block(candidates[i], request, *server_block);
+            break ;
+        }
+    }
+
+    for (size_t i = 0; i < servers.size(); i++)
+    {
+        if (servers[i].server_name == headers["host"])
+        {
+            server_block = new Config(servers[i], request);
+            route_block = get_route_block(servers[i], request, *server_block);
+            break ;
+        }
+    }
+
+    if (!server_block && !candidates.empty())
+    {
+        server_block = new Config(candidates[0], request);
+        route_block = get_route_block(candidates[0], request, *server_block);
+    }
+
+    if (server_block && route_block)
+    {
+		// cout << "server_block: " << server_block->get_server_name() << server_block->get_port() << server_block->get_host() << endl;
+		// cout << "route_block: " << route_block->get_route_name() << route_block->get_url() << endl;
+        response = route_block->form_response();
+        if (response == "")
+        {
+            cout << "response is NULL" << endl;
+        }
+		cout << "RESPONSE" << endl;
+		cout << endl;
+        cout << response << endl;
+
+        delete server_block;
+        delete route_block;
+    }
+	else
+	{
+		response += "HTTP/1.1 400 OK\r\n\r\nFailed";
+	}
+    
+    return response;
+}
+
+string process_request(const string &request_str, Client &client, ConfigParser &config_parser)
+{
+	// ConfigParser config_parser;
+
 	Parser parser(request_str);
 	parser.parse_Request();
 	
-	cout << "Request recived: " << parser.get_Method() << " " << parser.get_Path() << " on port " << client.get_Server()->get_port() << "." << endl;
-	if (parser.is_Valid())
-		return "HTTP/1.1 200 OK\r\n\r\nHello World";
-	else
-		return "HTTP/1.1 400 OK\r\n\r\n";
+	Request request;
+    request.buildFromParser(parser);
+
+	// GET ROUTE BLOCK AND LOCATION
+    return find_requested_server(request, config_parser, client);
+
+	// cout << "Request recived: " << parser.get_Method() << " " << parser.get_Path() << " on port " << client.get_Server()->get_port() << "." << endl;
+	// if (parser.is_Valid())
+	// 	return "HTTP/1.1 200 OK\r\n\r\nHello World";
+	// else
+	// 	return "HTTP/1.1 400 OK\r\n\r\n";
 }
 
-void handle_Read(struct epoll_event &event, Client &client)
+void handle_Read(struct epoll_event &event, Client &client, ConfigParser &config_parser)
 {
 	char buffer[1024];
 	
@@ -101,7 +198,7 @@ void handle_Read(struct epoll_event &event, Client &client)
 		ssize_t count = read(event.data.fd, buffer, sizeof(buffer));		
 		if (count == -1)
 		{
-			client.set_Response(process_request(client.get_Buffer(), client));
+			client.set_Response(process_request(client.get_Buffer(), client, config_parser));
 			stringstream portStr;
 
 			portStr << endl << "Port: " << client.get_Server()->get_port();
@@ -128,7 +225,7 @@ bool handle_Write(struct epoll_event &event, Client &client)
 	return true;
 }
 
-void EpollManager::epoll_Loop(void)
+void EpollManager::epoll_Loop(ConfigParser &config_parser)
 {
 	map<int, Client*> client_map;
 	while (g_server_running)
@@ -173,7 +270,7 @@ void EpollManager::epoll_Loop(void)
 					client_map.insert(make_pair(client->get_Socket(), client));
 				}
 				else 
-					handle_Read(active_events[i], *client_map[fd]);
+					handle_Read(active_events[i], *client_map[fd], config_parser);
 			}
 			if (active_events[i].events & EPOLLOUT)
 			{

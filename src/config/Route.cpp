@@ -6,7 +6,7 @@
 /*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:30 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/17 12:38:28 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/02/17 15:09:14 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ Route::Route(Location& loc, Request& request, Config& server_block) : server(ser
     //     cout << it->first << ": " << it->second << endl;
     // }
 
-    request_path = trim(retrieve_request_path(request_full_path));
+    request_path = normalize_path(trim(retrieve_request_path(request_full_path)));
     cout << "request_path: " << request_path << endl;
     request_query = retrieve_request_query(request_full_path);
     cout << "request_query: " << request_query << endl;
@@ -105,6 +105,7 @@ FsType Route::get_filesystem_type()
 {
     struct stat buffer;
     
+    cout << "filesystem_path: " << filesystem_path << endl;
     if (stat(filesystem_path.c_str(), &buffer) != 0)
         return FS_NOT_FOUND;
     
@@ -225,6 +226,7 @@ string Route::find_abs_path(string file)
 string Route::error_response(string error_file)
 {
     string error_file_abs_path;
+    string body;
 
     error_file_abs_path = find_abs_path(error_file);
     
@@ -237,13 +239,45 @@ string Route::error_response(string error_file)
 
     ostringstream buffer;
     buffer << file.rdbuf();
+    body = buffer.str();
 
-    return buffer.str();
+    ostringstream response;
+    response << "HTTP/1.1 404 Not found\r\n";
+    response << "Content-Type: text/html\r\n";
+    response << "Content-Length: " << body.length() << "\r\n";
+    response << "\r\n";
+    response << body;
+
+    return response.str();
+}
+
+
+string get_Mime_Type(const string &path)
+{
+	if (path.empty())
+		return (string("text/plain"));
+	size_t pos = path.find_last_of('.');
+	if (pos == string::npos)
+		return (string("application/octet-stream"));
+	string line = path.substr(pos + 1);
+	if (line == "html")
+		return (string("text/html"));
+	else if (line == "css")
+		return (string("text/css"));
+	else if (line == "js")
+		return (string("application/javascript"));
+	else if (line == "png")
+		return (string("image/png"));
+	else if (line == "jpg" || line == "jpeg")
+		return (string("image/jpeg"));
+	else if (line == "txt")
+		return (string("text/plain"));
+	return (string("application/octet-stream"));
 }
 
 string Route::read_static_file(string filesystem_path)
 {
-    ifstream file(filesystem_path.c_str());
+    ifstream file(filesystem_path.c_str(), ios::binary);
 
     if (!file.is_open())
         return error_response("www/errors/500.html");
@@ -252,7 +286,7 @@ string Route::read_static_file(string filesystem_path)
     buffer << file.rdbuf();
     string file_content = buffer.str();
     
-    string content_type = "text/html";
+    string content_type = get_Mime_Type(filesystem_path.c_str());
 
     ostringstream headers;
     headers << "HTTP/1.1 200 OK\r\n";
@@ -263,6 +297,18 @@ string Route::read_static_file(string filesystem_path)
 
     string response = headers.str() + file_content;
     return response;
+}
+
+string Route::normalize_path(const string &request_path)
+{
+    string path = request_path;
+    // remove duplicate slashes
+    while (path.find("//") != string::npos)
+        path = path.replace(path.find("//"), 2, "/");
+    // default to "/" if empty
+    if (path.empty())
+        path = "/";
+    return path;
 }
 
 string Route::serve_static_file()
@@ -349,8 +395,10 @@ string Route::form_response()
     switch(filesystem_status)
     {
         case FS_NOT_FOUND:
+            cout << "FS_NOT_FOUND" << endl;
             return error_response("www/errors/404.html"); // true / false
         case FS_IS_FILE:
+            cout << "FS_IS_FILE" << endl;
             if (is_cgi()) // mine
             {
                 CgiHandler cgi(*this, request);
@@ -359,6 +407,7 @@ string Route::form_response()
             else
                 return serve_static_file(); // mine
         case FS_IS_DIR:
+            cout << "FS_IS_DIR" << endl;
             return handle_autoindex(); 
     }
     return error_response("www/errors/500.html");
