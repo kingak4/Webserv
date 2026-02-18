@@ -6,7 +6,7 @@ CXXFLAGS = -g -Wall -Wextra -Werror -std=c++98
 SRCDIR = src
 OBJDIR = obj
 
-SOURCES = http/Parser.cpp http/Response.cpp http/Request.cpp config/ConfigParser.cpp config/Config.cpp \
+SOURCES = http/Parser.cpp http/Request.cpp config/ConfigParser.cpp config/Config.cpp \
 		config/Route.cpp cgi/CgiHandler.cpp core/EpollManager.cpp core/Server.cpp core/Client.cpp main.cpp
 OBJECTS = $(SOURCES:%.cpp=$(OBJDIR)/%.o)
 
