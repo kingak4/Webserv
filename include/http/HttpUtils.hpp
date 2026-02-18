@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpUtils.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kikwasni <kikwasni@student.42.fr>          +#+  +:+       +#+        */
+/*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/12 10:24:28 by kikwasni          #+#    #+#             */
-/*   Updated: 2026/02/13 09:18:59 by kikwasni         ###   ########.fr       */
+/*   Updated: 2026/02/18 14:05:24 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,8 @@
 # include <unistd.h>
 # include <cstdio> 
 # include <ctime>
+# include "../../include/http/Request.hpp"
+# include "../../include/config/Route.hpp"
 
 using namespace std;
 
