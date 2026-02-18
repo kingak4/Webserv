@@ -89,14 +89,12 @@ Route* get_route_block(ServerData server, Request& request, Config& server_block
 
     if ((pos = path.find("?")) != string::npos)
         route_path = path.substr(0, pos);
-	else if (path == "/uploads/mountain.jpg")
-		route_path = "/uploads";
     else
         route_path = path;
 
     for (size_t i = 0; i < locations.size(); ++i)
     {
-        if (route_path == locations[i].route_name)
+        if (route_path.find(locations[i].route_name) == 0)
             return new Route(locations[i], request, server_block);
     }
     return NULL;

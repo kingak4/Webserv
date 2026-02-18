@@ -6,7 +6,7 @@
 /*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:30 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/17 17:50:37 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/02/18 12:57:13 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -369,7 +369,8 @@ string Route::form_response()
             if (is_cgi())
             {
                 CgiHandler cgi(*this, request);
-                return cgi.run();   
+                cgi_output = cgi.run();
+                return cgi.build_cgi_response(cgi_output);    
             }
             else
                 return serve_static_file();

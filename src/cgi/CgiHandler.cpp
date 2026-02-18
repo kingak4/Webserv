@@ -7,13 +7,13 @@ CgiHandler::~CgiHandler() {}
 bool CgiHandler::does_file_exist()
 {
     struct stat st;
-    // string script;
-    // string path_to_script;
+    string script;
+    string path_to_script;
 
-    // script = route.get_request_path();
-    // cout << "script: " << script << endl;
-    // path_to_script = route.get_filesystem_path() + script;
-    // cout << "path_to_script: " << path_to_script << endl;
+    script = route.get_request_path();
+    cout << "script: " << script << endl;
+    path_to_script = route.get_filesystem_path() + script;
+    cout << "path_to_script: " << path_to_script << endl;
     if (stat(route.get_filesystem_path().c_str(), &st) == 0 && S_ISREG(st.st_mode))
         return true;
     return false;
