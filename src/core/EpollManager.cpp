@@ -3,37 +3,83 @@
 // sig_atomic_t: an integer type that can be accessed atomically
 volatile sig_atomic_t g_server_running = 1;
 
+string get_Current_Date_RFC(bool is_short)
+{
+	time_t current_time = time(NULL);
+	struct tm *time_struct = gmtime(&current_time);
+	if (!time_struct)
+		return (std::string());
+	const char *days[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+	const char *months[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+							  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+	char buffer[100];
+	if (is_short)
+	{
+		sprintf(buffer, "%02d %s %04d, %02d:%02d:%02d GMT",
+				time_struct->tm_mday,
+				months[time_struct->tm_mon],
+				time_struct->tm_year + 1900,
+				time_struct->tm_hour,
+				time_struct->tm_min,
+				time_struct->tm_sec);
+	}
+	else
+	{
+		sprintf(buffer, "%s, %02d %s %04d %02d:%02d:%02d GMT",
+				days[time_struct->tm_wday],
+				time_struct->tm_mday,
+				months[time_struct->tm_mon],
+				time_struct->tm_year + 1900,
+				time_struct->tm_hour,
+				time_struct->tm_min,
+				time_struct->tm_sec);
+	}
+	return (std::string(buffer));
+}
+
 void Console::message(const string &message, Message_type type, bool pre_newline)
 {
 	stringstream ss;
 	if (pre_newline)
 		cout << endl;
+	ss << "[" << get_Current_Date_RFC(true) << "] ";
 	switch (type)	
 	{
-		case SERVER:
-			cout << BLUE << message << RESET << endl;
+		case INFO:
+			ss << COL_INFO << "[INFO] " << message << RESET << endl;
 			break;
-		case IMPORTANT:
-			cout << BOLD_BLUE << message << RESET << endl;
+		case NOTICE:
+			ss << COL_NOTICE  << "[NOTICE] "<< message << RESET << endl;
 			break;
-		case LOG:
-			cout << message << endl;
+		case WARNING:
+			ss << COL_WARNING << "[WARNING] "<< message << RESET << endl;
 			break;
 		case SUCCES:
-			cout << GREEN << message << RESET << endl;
+			ss << COL_SUCCES << "[SUCCES] "<< message << RESET << endl;
+			break;
+		case GET:
+			ss << COL_GET << "[GET] "<< message << RESET << endl;
+			break;
+		case POST:
+			ss << COL_SUCCES << "[POST] "<< message << RESET << endl;
+			break;
+		case DELETE:
+			ss << COL_DELETE << "[DELETE] "<< message << RESET << endl;
 			break;
 		case ERROR:
-			cerr << RED << message << RESET << endl;
-			break;
+			ss << COL_ERROR << "[ERROR] "<< message << RESET << endl;
+			cerr << ss.str();
+			return;
 	}
+	cout << ss.str();
 }
 
 void signal_handler(int signum) {
     (void)signum; 
     g_server_running = 0; 
-	Console::message("SIGINT signal detected:", IMPORTANT, true);
-	Console::message("Clean shutdown initialized.", IMPORTANT, false);
-	Console::message("", IMPORTANT, false);
+	Console::message("SIGINT signal detected:", NOTICE, true);
+	Console::message("Clean shutdown initialized.", NOTICE, false);
+	cout << endl;
 }
 
 EpollManager::EpollManager(void) {  }
@@ -45,7 +91,7 @@ EpollManager::~EpollManager(void)
 	for (it = this->servers_running.begin(); it != this->servers_running.end(); ++it)
 		delete it->second;
 	this->servers_running.clear();
-	Console::message("Closing epoll file descriptor.", IMPORTANT, true);
+	Console::message("Closing epoll file descriptor.", NOTICE, true);
 	close(this->epoll_fd);
 }
 
@@ -78,7 +124,7 @@ void EpollManager::init_Epoll(vector<ServerData> &config_splitted)
 
 		stringstream ss;
 		ss << "Port " << server->get_port() << " opened.";
-		Console::message(ss.str(), SERVER, true);
+		Console::message(ss.str(), INFO, true);
 
 		this->servers_running.insert(make_pair(socket_fd, server));
 	}
@@ -97,7 +143,7 @@ Client *accept_connection(Server *serv)
 	{
 		stringstream ss;
 		ss << "New Client connected on port " << serv->get_port() << ".";
-		Console::message(ss.str(), SERVER, false);
+		Console::message(ss.str(), INFO, false);
 
 		int status = fcntl(clientSocket, F_SETFL, O_NONBLOCK);
 		if (status == -1)
@@ -118,9 +164,18 @@ string process_request(const string &request_str, Client &client)
 	Parser parser(request_str);
 	parser.parse_Request();
 	
+	Message_type type;	
+	string method = parser.get_Method();
+	if (method == "GET")
+		type = GET;
+	else if (method == "POST")
+		type = POST;
+	else if (method == "DELETE")
+		type = DELETE;
+
 	stringstream ss;
 	ss << "Request recived: " << parser.get_Method() << " " << parser.get_Path() << " on port " << client.get_Server()->get_port() << ".";
-	Console::message(ss.str(), LOG, true);
+	Console::message(ss.str(), type, true);
 	if (parser.is_Valid())
 		return "HTTP/1.1 200 OK\r\n\r\nHello World";
 	else
@@ -147,7 +202,7 @@ void handle_Read(struct epoll_event &event, Client &client)
 		{
 			stringstream ss;
 			ss << "Client: " << event.data.fd << " disconnected." << endl;
-			Console::message(ss.str(), SERVER, false);
+			Console::message(ss.str(), INFO, false);
 
 			close(event.data.fd);
 			break;
@@ -205,7 +260,7 @@ void EpollManager::epoll_Loop(void)
 					Client *client = accept_connection(this->servers_running.at(fd));
 					if (client == NULL)
 					{
-						cerr << RED << "Client accept() fail, continue.";
+						Console::message("Client accept() fail, continue.", ERROR, false);
 						continue;
 					}
 					client_map.insert(make_pair(client->get_Socket(), client));

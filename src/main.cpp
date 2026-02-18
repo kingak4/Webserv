@@ -4,12 +4,12 @@ int main(int argc, char **argv)
 {
 	if (argc < 2)
 	{
-		cout << RED << "Server launch failed: provide path to config.conf file." << RESET << endl;
+		cout << COL_ERROR << "Server launch failed: provide path to config.conf file." << RESET << endl;
 		return 1;
 	}
 	else if (argc != 2)
 	{
-		cout << RED << "Server launch failed: too many arguments." << RESET << endl;
+		cout << COL_ERROR << "Server launch failed: too many arguments." << RESET << endl;
 		return 1;
 	}
 	signal(SIGINT, signal_handler);
@@ -19,28 +19,34 @@ int main(int argc, char **argv)
 
 	try
 	{
-		cout << BOLD_BLUE << "Server initialization" << RESET << endl;
+		Console::message("Server initialization", NOTICE, false);
 		//TODO Config parser needs to throw an exceptions on errors
 		ConfigParser configParser;
 		configParser.parse_config_file(config_path);
 		splitted_config = configParser.get_config_servers();
-		cout << BLUE << "Config correct." << RESET << endl;
+		Console::message("Config correct", SUCCES, false);
+		cout << endl;
 
 		epoll_manager->init_Epoll(splitted_config);
-		cout << BLUE << "Epoll initialization succesful." << RESET << endl;
-		cout << GREEN << "Server initialized succesfully." << RESET << endl;
+		Console::message("Epoll initialization succesful.", INFO, false);
+		Console::message("Server initialized succesfully.", SUCCES, true);
 		epoll_manager->epoll_Loop();	
 	}
 	catch (runtime_error &e)
 	{
-		cerr << RED << "ERROR: " << e.what() << RESET << endl;
-		cout << RED << "Server shutdown. Disabling " << epoll_manager->get_Servers_Running().size() << " ports." << RESET << endl; 
+		stringstream ss;
+		ss << "ERROR: " << e.what();
+		Console::message(ss.str(), ERROR, true);
+		ss.clear();
+		
+		ss << "Server shutdown. Disabling " << epoll_manager->get_Servers_Running().size() << " ports.";
+		Console::message(ss.str(), ERROR, false);
 	}
 
 	try
 	{
 		delete epoll_manager;
-		cout << GREEN << "Server disabled cleanly. No issues detected." << RESET << endl;
+		Console::message("Server disabled cleanly. No issues detected.", SUCCES, true);
 	}
 	catch (runtime_error &e)
 	{

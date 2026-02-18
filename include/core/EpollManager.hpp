@@ -11,11 +11,14 @@ using namespace std;
 
 enum Message_type
 {
-	SERVER,
-	IMPORTANT,
-	LOG,
+	INFO,
+	NOTICE,
+	WARNING,
 	ERROR,
-	SUCCES
+	SUCCES,
+	GET,
+	POST,
+	DELETE
 };
 
 namespace Console

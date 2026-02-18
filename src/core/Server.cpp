@@ -11,7 +11,7 @@ Server::~Server(void)
 {
 	stringstream ss;
 	ss << "Closing port " << this->port << ".";  
-	Console::message(ss.str(), SERVER, false);
+	Console::message(ss.str(), INFO, false);
 }
 
 Server &Server::operator=(const Server &other)
@@ -47,7 +47,7 @@ void Server::server_init(void)
 	{
 	stringstream ss;
 	ss << "Port " << this->port << " socket created succesfuly.";
-	Console::message(ss.str(), SERVER, false);
+	Console::message(ss.str(), INFO, false);
 	}
 
 	int opt = 1;
@@ -66,7 +66,7 @@ void Server::server_init(void)
 	{
 	stringstream ss;
 	ss << "Port " << this->port << " socket bind() succesful.";
-	Console::message(ss.str(), SERVER, false);
+	Console::message(ss.str(), INFO, false);
 	}
 
 	if (listen(socket_fd, 5) == -1)
@@ -79,6 +79,6 @@ void Server::server_init(void)
 	{
 	stringstream ss;
 	ss << "Port " << this->port << " listen() succesful.";
-	Console::message(ss.str(), SERVER, false);
+	Console::message(ss.str(), INFO, false);
 	}
 }
