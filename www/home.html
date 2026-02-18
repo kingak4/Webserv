@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webserv Project | 42 Curriculum</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Reset i bazy */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0e17; /* Głęboki granat */
+            color: #e0e6ed;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Nawigacja */
+        nav {
+            background: rgba(13, 25, 48, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid #1e3a8a;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: #3b82f6;
+            letter-spacing: -1px;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        nav ul li {
+            margin-left: 2rem;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: #94a3b8;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        nav ul li a:hover {
+            color: #3b82f6;
+        }
+
+        /* Hero Section */
+        header {
+            height: 60vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: radial-gradient(circle at center, #1e3a8a 0%, #0a0e17 70%);
+            padding-top: 80px;
+        }
+
+        header h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #60a5fa, #2563eb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            color: #94a3b8;
+            max-width: 600px;
+        }
+
+        /* Content Section */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 4rem 5%;
+        }
+
+        .project-description {
+            background: #111827;
+            padding: 2.5rem;
+            border-radius: 16px;
+            border: 1px solid #1e293b;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        h2 {
+            color: #3b82f6;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .feature-card {
+            background: #1e293b;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .code-block {
+            background: #000;
+            color: #10b981;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 1.5rem 0;
+            border: 1px solid #333;
+        }
+
+        ul {
+            list-style-type: none;
+        }
+
+        ul li::before {
+            content: "•";
+            color: #3b82f6;
+            font-weight: bold;
+            display: inline-block; 
+            width: 1em;
+            margin-left: -1em;
+        }
+
+        footer {
+            text-align: center;
+            padding: 3rem;
+            color: #475569;
+            font-size: 0.9rem;
+            border-top: 1px solid #1e293b;
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">Webserv</div>
+        <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#">Art</a></li>
+            <li><a href="#">Form</a></li>
+            <li><a href="#">Contact</a></li>
+        </ul>
+    </nav>
+
+    <header>
+        <h1>Welcome in Webserv</h1>
+        <p>A high-performance C++ HTTP server built by kikwasni, alraltse, korzecho.</p>
+    </header>
+
+    <div class="container">
+        <section class="project-description">
+            <h2>Webserv</h2>
+            <p>Webserv is a custom HTTP server written entirely in <strong>C++ 98</strong> as part of the 42 curriculum.</p>
+            
+            <p style="margin-top: 1rem;">The objective of this project is to build a fully functional, non-blocking web server from scratch, without using any external web server libraries. The server must handle multiple clients simultaneously using a single I/O multiplexing mechanism.</p>
+
+            <div class="code-block">
+                ./webserv [configuration_file]
+            </div>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3>Core Features</h3>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>Parse NGINX-inspired config</li>
+                        <li>Handle multiple ports/blocks</li>
+                        <li>Serve static websites</li>
+                        <li>Support file uploads</li>
+                        <li>GET, POST, and DELETE methods</li>
+                        <li>Execute CGI (PHP/Python)</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h3>Technical Excellence</h3>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>Non-blocking I/O event loop</li>
+                        <li>Multiplexing (select, poll, etc.)</li>
+                        <li>Chunked transfer decoding</li>
+                        <li>Memory safety (C++ 98)</li>
+                        <li>Resilient under stress</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 2rem; color: #60a5fa;">Configuration Capabilities</h3>
+            <p>The configuration file allows for granular control over the server's behavior, including defining interface/port pairs, limiting client body size, and setting up complex routing with directory listing and CGI support.</p>
+        </section>
+    </div>
+
+    <footer>
+        &copy; 2026 Webserv Project | Coded with passion for 42
+    </footer>
+
+</body>
+</html>
+
