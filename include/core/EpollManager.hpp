@@ -1,9 +1,7 @@
 #ifndef EPOLLMANAGER_HPP
 #define EPOLLMANAGER_HPP
 
-#include <iostream>
 #include <sys/epoll.h>
-#include <map>
 #include "Server.hpp"
 #include "../../include/config/ConfigParser.hpp"
 #include "../../include/config/Config.hpp"
@@ -13,6 +11,23 @@
 #include <csignal>
 
 using namespace std;
+
+enum Message_type
+{
+	INFO,
+	NOTICE,
+	WARNING,
+	ERROR,
+	SUCCES,
+	GET,
+	POST,
+	DELETE
+};
+
+namespace Console
+{
+	void message(const string &message, Message_type type, bool pre_newline);
+}
 
 void signal_handler(int signum);
 

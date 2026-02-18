@@ -6,7 +6,7 @@
 /*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:30 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/18 12:57:13 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/02/18 15:01:06 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,7 @@ FsType Route::get_filesystem_type()
 {
     struct stat buffer;
     
-    cout << "filesystem_path: " << filesystem_path << endl;
+    // cout << "filesystem_path: " << filesystem_path << endl;
     if (stat(filesystem_path.c_str(), &buffer) != 0)
         return FS_NOT_FOUND;
     
@@ -180,6 +180,7 @@ string Route::handle_autoindex()
     string index_path;
 
     index_path = filesystem_path + "/" + url;
+    // cout << "index_path: " << index_path << endl;
 
     if (autoindex == "off")
     {
@@ -189,7 +190,10 @@ string Route::handle_autoindex()
             return read_static_file(index_path);
         }
         else
-            return error_response("404");
+        {
+            // cout << "ERORR" << endl;
+            return error_response("404");   
+        }
     }
     else if (autoindex == "on")
         return serve_directory_listing(filesystem_path);
@@ -362,10 +366,10 @@ string Route::form_response()
     switch(filesystem_status)
     {
         case FS_NOT_FOUND:
-            cout << "FS_NOT_FOUND" << endl;
+            // cout << "FS_NOT_FOUND" << endl;
             return error_response("404");
         case FS_IS_FILE:
-            cout << "FS_IS_FILE" << endl;
+            // cout << "FS_IS_FILE" << endl;
             if (is_cgi())
             {
                 CgiHandler cgi(*this, request);
@@ -375,10 +379,10 @@ string Route::form_response()
             else
                 return serve_static_file();
         case FS_IS_DIR:
-            cout << "FS_IS_DIR" << endl;
+            // cout << "FS_IS_DIR" << endl;
             if (is_cgi())
             {
-                cout << "IS_CGI" << endl;
+                // cout << "IS_CGI" << endl;
                 CgiHandler cgi(*this, request);
                 cgi_output = cgi.run();
                 return cgi.build_cgi_response(cgi_output);   

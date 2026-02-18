@@ -2,8 +2,6 @@
 
 int main(int argc, char **argv)
 {
-    ConfigParser config_parser;
-
 	signal(SIGINT, signal_handler);
 	// string config_path = argv[1];
 	EpollManager *epoll_manager = new EpollManager();
@@ -11,7 +9,7 @@ int main(int argc, char **argv)
 
 	try
 	{
-		cout << BOLD_BLUE << "Server initialization" << RESET << endl;
+		Console::message("Server initialization", NOTICE, false);
 		//TODO Config parser needs to throw an exceptions on errors
 		ConfigParser configParser;
 
@@ -30,23 +28,29 @@ int main(int argc, char **argv)
 		}
 	
 		splitted_config = configParser.get_config_servers();
-		cout << BLUE << "Config correct." << RESET << endl;
+		Console::message("Config correct", SUCCES, false);
+		cout << endl;
 
 		epoll_manager->init_Epoll(splitted_config);
-		cout << BLUE << "Epoll initialization succesful." << RESET << endl;
-		cout << GREEN << "Server initialized succesfully." << RESET << endl;
+		Console::message("Epoll initialization succesful.", INFO, false);
+		Console::message("Server initialized succesfully.", SUCCES, true);
 		epoll_manager->epoll_Loop(configParser);	
 	}
 	catch (runtime_error &e)
 	{
-		cerr << RED << "ERROR: " << e.what() << RESET << endl;
-		cout << RED << "Server shutdown. Disabling " << epoll_manager->get_Servers_Running().size() << " ports." << RESET << endl; 
+		stringstream ss;
+		ss << "ERROR: " << e.what();
+		Console::message(ss.str(), ERROR, true);
+		ss.clear();
+		
+		ss << "Server shutdown. Disabling " << epoll_manager->get_Servers_Running().size() << " ports.";
+		Console::message(ss.str(), ERROR, false);
 	}
 
 	try
 	{
 		delete epoll_manager;
-		cout << GREEN << "Server disabled cleanly. No issues detected." << RESET << endl;
+		Console::message("Server disabled cleanly. No issues detected.", SUCCES, true);
 	}
 	catch (runtime_error &e)
 	{

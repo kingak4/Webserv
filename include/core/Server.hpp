@@ -1,28 +1,24 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include <sys/epoll.h>
-#include <iostream>
-#include <stdexcept>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <cerrno>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sstream>
-#include <vector>
-
-//tests
 #include "../../include/http/Parser.hpp"
 #include "Client.hpp"
 
+#include <netinet/in.h>
+#include <fcntl.h>
+
 class EpollManager;
 
-static const std::string RED = "\033[0;31m";
+static const std::string COL_INFO = "\033[0;37m";
+static const std::string COL_NOTICE = "\033[1;36m";
+static const std::string COL_SUCCES = "\033[1;32m";
+static const std::string COL_WARNING = "\033[1;33m";
+static const std::string COL_ERROR = "\033[1;31m";
+
+static const std::string COL_GET = "\033[0;34m";
+static const std::string COL_POST = "\033[0;34m";
+static const std::string COL_DELETE = "\033[0;31m";
 static const std::string RESET = "\033[0m";
-static const std::string GREEN = "\033[0;32m";
-static const std::string BLUE = "\033[0;36m";
-static const std::string BOLD_BLUE = "\033[1;36m";
 
 class Server
 {
