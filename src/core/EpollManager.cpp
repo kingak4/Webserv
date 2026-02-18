@@ -89,6 +89,8 @@ Route* get_route_block(ServerData server, Request& request, Config& server_block
 
     if ((pos = path.find("?")) != string::npos)
         route_path = path.substr(0, pos);
+	else if (path == "/uploads/mountain.jpg")
+		route_path = "/uploads";
     else
         route_path = path;
 
@@ -155,13 +157,17 @@ string find_requested_server(Request& request, ConfigParser& config_parser, Clie
             cout << "response is NULL" << endl;
         }
 		cout << endl;
-        cout << response << endl;
+        //cout << response << endl;
 
         delete server_block;
         delete route_block;
     }
 	else
 	{
+		if (server_block)
+			delete server_block;
+		if (route_block)
+			delete route_block;
 		response += "HTTP/1.1 400 OK\r\n\r\nFailed";
 	}
     
@@ -215,10 +221,25 @@ void handle_Read(struct epoll_event &event, Client &client, ConfigParser &config
 bool handle_Write(struct epoll_event &event, Client &client)
 {
 	string response = client.get_Response();
+	ssize_t printed;
 
-	if (write(event.data.fd, response.c_str(), response.length()) != (ssize_t)response.length())
-		cout << "Invalid write" << endl;
-	return true;
+	if (response.empty())
+		return true;
+	printed = write(event.data.fd, response.c_str(), response.length());
+	cout << "printed: " << printed << endl;
+	if (printed <= 0)
+		return true;
+	if (printed < (ssize_t)response.length())
+	{
+		response.erase(0, printed);
+		client.set_Response(response);
+		return false;
+	}
+	else
+	{
+		client.set_Response("");
+		return true;
+	}
 }
 
 void EpollManager::epoll_Loop(ConfigParser &config_parser)
