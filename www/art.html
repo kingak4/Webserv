@@ -56,11 +56,6 @@
             justify-content: center;
             transition: 0.3s;
             box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
-            padding: 0;
-        }
-
-        .theme-switcher:hover {
-            transform: translateY(-50%) scale(1.1);
         }
 
         nav {
@@ -77,7 +72,7 @@
             border-bottom: 1px solid var(--blue-glow);
         }
 
-        .logo { font-weight: 800; font-size: 1.5rem; color: var(--blue-primary); letter-spacing: -1px; }
+        .logo { font-weight: 800; font-size: 1.5rem; color: var(--blue-primary); letter-spacing: -1px; text-decoration: none; }
 
         nav ul { display: flex; list-style: none; align-items: center; }
         nav ul li { margin-left: 2rem; }
@@ -151,7 +146,7 @@
             margin-top: 20px;
         }
 
-        .art-placeholder {
+        .art-item {
             aspect-ratio: 1;
             background: var(--bg-dark);
             border: 1px solid var(--border-col);
@@ -161,6 +156,9 @@
             justify-content: center;
             color: var(--text-dim);
             font-size: 0.8rem;
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
         }
     </style>
 </head>
@@ -171,10 +169,10 @@
     </button>
 
     <nav>
-        <div class="logo">Webserv</div>
+        <a href="home.html" class="logo">Webserv</a>
         <ul>
             <li><a href="home.html">Home</a></li>
-            <li><a href="art.html">Art</a></li>
+            <li><a href="art.html" style="color: var(--blue-primary);">Art</a></li>
             <li><a href="form.html">Form</a></li>
             <li><a href="contact.html">Contact</a></li>
             <li><a href="/cgi-bin/test.py">CGI Test</a></li>
@@ -184,8 +182,8 @@
     <header class="hero">
         <h1>Welcome to the place of art</h1>
         <p style="color: var(--text-dim); font-size: 1.25rem; font-weight: 500; max-width: 700px; margin: 10px auto 0;">
-                    Create something creative with us and enjoy using our server.
-                </p>
+            Create something creative with us and enjoy using our server.
+        </p>
     </header>
 
     <div class="container">
@@ -194,19 +192,19 @@
             <div class="upload-box">
                 <label for="file-upload" style="cursor: pointer; display: block;">
                     <span style="font-size: 3rem;">🎨</span>
-                    <p>Select your file to upload</p>
+                    <p id="file-name">Select your file to upload</p>
                 </label>
-                <input id="file-upload" type="file" style="margin: 20px auto; display: block; color: var(--text-dim);" />
-                <button class="upload-btn" onclick="alert('Sent to Webserv!')">Upload to Server</button>
+                <input id="file-upload" type="file" style="display: none;" accept="image/*" />
+                <button class="upload-btn" id="submit-upload">Upload to Server</button>
             </div>
         </section>
 
         <section class="section-card">
             <h2>Art Gallery</h2>
-            <div class="gallery-grid">
-                <div class="art-placeholder">Your Art Here</div>
-                <div class="art-placeholder">Your Art Here</div>
-                <div class="art-placeholder">Your Art Here</div>
+            <div class="gallery-grid" id="gallery">
+                <div class="art-item">Gallery Item 1</div>
+                <div class="art-item">Gallery Item 2</div>
+                <div class="art-item">Gallery Item 3</div>
             </div>
         </section>
     </div>
@@ -223,12 +221,59 @@
 
         themeToggle.addEventListener('click', () => {
             body.classList.toggle('light-mode');
-            if (body.classList.contains('light-mode')) {
-                themeIcon.innerText = '🌙';
-                localStorage.setItem('theme', 'light');
-            } else {
-                themeIcon.innerText = '🌞';
-                localStorage.setItem('theme', 'dark');
+            const isLight = body.classList.contains('light-mode');
+            themeIcon.innerText = isLight ? '🌙' : '🌞';
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        });
+
+        const fileInput = document.getElementById('file-upload');
+        const fileNameLabel = document.getElementById('file-name');
+        const uploadBtn = document.getElementById('submit-upload');
+        const gallery = document.getElementById('gallery');
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                fileNameLabel.innerText = "Selected: " + fileInput.files[0].name;
+            }
+        });
+
+        uploadBtn.addEventListener('click', async () => {
+            if (fileInput.files.length === 0) {
+                alert("Please select a file first!");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/cgi-bin/upload.py', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    alert('Successfully uploaded to Webserv!');
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const newArt = document.createElement('div');
+                        newArt.className = 'art-item';
+                        newArt.style.backgroundImage = `url(${e.target.result})`;
+                        newArt.innerText = '';
+                        gallery.prepend(newArt);
+                    }
+                    reader.readAsDataURL(file);
+                    
+                    fileInput.value = '';
+                    fileNameLabel.innerText = 'Select your file to upload';
+                } else {
+                    alert('Server error: ' + response.status);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error. Is your C++ Webserv running?');
             }
         });
     </script>
