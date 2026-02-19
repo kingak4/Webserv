@@ -14,6 +14,18 @@
             --text-main: #e0e6ed;
             --text-dim: #94a3b8;
             --input-bg: #0f172a;
+            --nav-bg: rgba(13, 25, 48, 0.95);
+        }
+
+        body.light-mode {
+            --bg-dark: #f0f4f8;
+            --card-bg: #ffffff;
+            --blue-primary: #2563eb;
+            --blue-glow: #cbd5e0;
+            --text-main: #1a202c;
+            --text-dim: #4a5568;
+            --input-bg: #edf2f7;
+            --nav-bg: rgba(255, 255, 255, 0.95);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
@@ -23,13 +35,39 @@
             background-color: var(--bg-dark);
             color: var(--text-main);
             line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
         }
 
-        /* --- NAVIGATION (POZIOMA) --- */
+        .theme-switcher {
+            position: fixed;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 2000;
+            background: var(--card-bg);
+            border: 1px solid var(--blue-primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+            padding: 0;
+            outline: none;
+        }
+
+        .theme-switcher:hover {
+            transform: translateY(-50%) scale(1.1);
+        }
+
         nav {
-            background: rgba(13, 25, 48, 0.95);
-            backdrop-filter: blur(12px);
-            padding: 1rem 10%;
+            background: var(--nav-bg);
+            backdrop-filter: blur(10px);
+            padding: 1rem 5%;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -42,23 +80,16 @@
 
         .logo { font-weight: 800; font-size: 1.5rem; color: var(--blue-primary); letter-spacing: -1px; }
 
-        nav ul { display: flex; list-style: none; }
-
+        nav ul { display: flex; list-style: none; align-items: center; }
         nav ul li { margin-left: 2rem; }
-
         nav ul li a {
             text-decoration: none;
             color: var(--text-dim);
             font-weight: 600;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
             transition: 0.3s;
         }
-
         nav ul li a:hover { color: var(--blue-primary); }
 
-        /* --- HERO SECTION --- */
         header {
             height: 60vh;
             display: flex;
@@ -66,31 +97,34 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            background: radial-gradient(circle at center, #1e3a8a 0%, #0a0e17 70%);
+            background: radial-gradient(circle at center, var(--blue-glow) 0%, var(--bg-dark) 70%);
             padding-top: 80px;
         }
 
-        header h1 { font-size: 4rem; margin-bottom: 1rem; background: linear-gradient(to right, #60a5fa, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        header h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #60a5fa, #2563eb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-        header p { font-size: 1.2rem; color: var(--text-dim); max-width: 600px; }
+        header p { font-size: 1.2rem; color: var(--text-dim); max-width: 600px; padding: 0 20px; }
 
-        /* --- CONTAINERS --- */
         .container { max-width: 1000px; margin: 0 auto; padding: 4rem 5%; }
 
         .section-card {
             background: var(--card-bg);
             padding: 3rem;
             border-radius: 20px;
-            border: 1px solid #1e293b;
+            border: 1px solid var(--blue-glow);
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             margin-bottom: 4rem;
         }
 
-        h2 { color: var(--blue-primary); margin-bottom: 1.5rem; font-size: 2.2rem; }
+        body.light-mode .section-card { box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
 
-        /* --- FORM STYLES --- */
-        .form-welcome { text-align: center; margin-bottom: 2.5rem; }
-        .form-welcome h3 { font-size: 1.5rem; color: #60a5fa; margin-bottom: 0.5rem; }
+        h2 { color: var(--blue-primary); margin-bottom: 1.5rem; font-size: 2.2rem; }
 
         .form-grid {
             display: grid;
@@ -100,15 +134,14 @@
         }
 
         .input-group { display: flex; flex-direction: column; margin-bottom: 15px; }
-
         .input-group label { margin-bottom: 8px; font-weight: 600; color: var(--text-dim); font-size: 0.85rem; }
 
         .input-group input {
             background: var(--input-bg);
-            border: 1px solid #1e293b;
+            border: 1px solid var(--blue-glow);
             padding: 14px;
             border-radius: 8px;
-            color: white;
+            color: var(--text-main);
             outline: none;
             transition: 0.3s;
         }
@@ -144,8 +177,7 @@
 
         .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); }
 
-        /* --- FOOTER --- */
-        footer { text-align: center; padding: 3rem; color: #475569; border-top: 1px solid #1e293b; }
+        footer { text-align: center; padding: 3rem; color: #475569; border-top: 1px solid var(--blue-glow); }
 
         @media (max-width: 768px) {
             .form-grid { grid-template-columns: 1fr; }
@@ -156,6 +188,10 @@
 </head>
 <body>
 
+    <button id="theme-toggle" class="theme-switcher">
+        <span id="theme-icon">🌞</span>
+    </button>
+
     <nav>
         <div class="logo">Webserv</div>
         <ul>
@@ -163,6 +199,7 @@
             <li><a href="art.html">Art</a></li>
             <li><a href="form.html">Form</a></li>
             <li><a href="contact.html">Contact</a></li>
+            <li><a href="/cgi-bin/test.py">CGI Test</a></li>
         </ul>
     </nav>
 
@@ -170,25 +207,9 @@
         <h1>Welcome to the Form page</h1>
         <p>Are you looking for a job? Unfortunately, we don't have any because we're looking for someone, but send your application, maybe you'll find one.</p>
     </header>
-
-    <!-- <div class="container">
-        
-        <section id="art" class="section-card">
-            <h2>Art Section</h2>
-            <p style="margin-bottom: 20px;">Add your file and let's create the art. Share your creative vision with our community.</p>
-            <div class="upload-area">
-                <span style="font-size: 3rem;">🎨</span>
-                <p style="margin: 15px 0;">Select your masterpiece to upload</p>
-                <input type="file" style="color: var(--text-dim);">
-            </div>
-        </section> -->
-
-        <!-- <section id="form" class="section-card">
-            <div class="form-welcome">
-                <h3>Welcome to Form Page</h3>
-                <p>Are you looking for a new job? Send us your CV and let's build the future of web servers together.</p>
-            </div> -->
-
+    <div class="container">
+        <section class="section-card">
+            <h2>Career Application</h2>
             <form action="#" method="POST">
                 <div class="form-grid">
                     <div class="input-group">
@@ -212,25 +233,40 @@
                 <div class="input-group">
                     <label>Upload your CV (PDF preferred)</label>
                     <div class="upload-area">
-                        <input type="file" id="cv-upload" required>
+                        <input type="file" id="cv-upload" required style="color: var(--text-dim);">
                     </div>
                 </div>
 
                 <button type="submit" class="btn-submit">Send Application</button>
             </form>
         </section>
-
-        <!-- <section id="contact" class="section-card" style="text-align: center;">
-            <h2>Contact</h2>
-            <p>Have questions? Reach out to the Webserv team.</p>
-            <p style="margin-top: 10px; color: var(--blue-primary);">contact@webserv-project.io</p>
-        </section> -->
-
     </div>
 
     <footer>
         &copy; 2026 Webserv Project | Low-level C++ 98 Excellence
     </footer>
 
+    <script>
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const body = document.body;
+
+        if (localStorage.getItem('theme') === 'light') {
+            body.classList.add('light-mode');
+            themeIcon.innerText = '🌙';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('light-mode');
+            
+            if (body.classList.contains('light-mode')) {
+                themeIcon.innerText = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                themeIcon.innerText = '🌞';
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+    </script>
 </body>
 </html>

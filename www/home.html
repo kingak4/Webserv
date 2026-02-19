@@ -6,24 +6,41 @@
     <title>Webserv Project | 42 Curriculum</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* Reset i bazy */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --bg-dark: #0a0e17;
+            --card-bg: #111827;
+            --blue-primary: #3b82f6;
+            --blue-glow: #1e3a8a;
+            --text-main: #e0e6ed;
+            --text-dim: #94a3b8;
+            --nav-bg: rgba(13, 25, 48, 0.95);
+            --border-col: #1e293b;
         }
+
+        body.light-mode {
+            --bg-dark: #f0f4f8;
+            --card-bg: #ffffff;
+            --blue-primary: #2563eb;
+            --blue-glow: #cbd5e0;
+            --text-main: #1a202c;
+            --text-dim: #4a5568;
+            --nav-bg: rgba(255, 255, 255, 0.95);
+            --border-col: #e2e8f0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0a0e17; /* Głęboki granat */
-            color: #e0e6ed;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
             line-height: 1.6;
             overflow-x: hidden;
+            transition: background-color 0.3s, color 0.3s;
         }
 
-        /* Nawigacja */
         nav {
-            background: rgba(13, 25, 48, 0.95);
+            background: var(--nav-bg);
             backdrop-filter: blur(10px);
             padding: 1rem 5%;
             display: flex;
@@ -33,19 +50,20 @@
             width: 100%;
             top: 0;
             z-index: 1000;
-            border-bottom: 1px solid #1e3a8a;
+            border-bottom: 1px solid var(--blue-glow);
         }
 
         .logo {
             font-weight: 800;
             font-size: 1.5rem;
-            color: #3b82f6;
+            color: var(--blue-primary);
             letter-spacing: -1px;
         }
 
         nav ul {
             display: flex;
             list-style: none;
+            align-items: center;
         }
 
         nav ul li {
@@ -54,16 +72,35 @@
 
         nav ul li a {
             text-decoration: none;
-            color: #94a3b8;
-            font-weight: 500;
-            transition: color 0.3s ease;
+            color: var(--text-dim);
+            font-weight: 600;
+            transition: 0.3s;
         }
 
         nav ul li a:hover {
-            color: #3b82f6;
+            color: var(--blue-primary);
         }
 
-        /* Hero Section */
+        .theme-switcher {
+            position: fixed;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 2000;
+            background: var(--card-bg);
+            border: 1px solid var(--blue-primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        }
+
         header {
             height: 60vh;
             display: flex;
@@ -71,7 +108,7 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            background: radial-gradient(circle at center, #1e3a8a 0%, #0a0e17 70%);
+            background: radial-gradient(circle at center, var(--blue-glow) 0%, var(--bg-dark) 70%);
             padding-top: 80px;
         }
 
@@ -85,11 +122,10 @@
 
         header p {
             font-size: 1.2rem;
-            color: #94a3b8;
+            color: var(--text-dim);
             max-width: 600px;
         }
 
-        /* Content Section */
         .container {
             max-width: 1000px;
             margin: 0 auto;
@@ -97,15 +133,19 @@
         }
 
         .project-description {
-            background: #111827;
+            background: var(--card-bg);
             padding: 2.5rem;
             border-radius: 16px;
-            border: 1px solid #1e293b;
+            border: 1px solid var(--border-col);
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
+        body.light-mode .project-description {
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
         h2 {
-            color: #3b82f6;
+            color: var(--blue-primary);
             margin-bottom: 1.5rem;
             font-size: 2rem;
         }
@@ -118,10 +158,13 @@
         }
 
         .feature-card {
-            background: #1e293b;
+            background: var(--bg-dark);
             padding: 1.5rem;
             border-radius: 12px;
-            border-left: 4px solid #3b82f6;
+            border-left: 4px solid var(--blue-primary);
+            border-top: 1px solid var(--border-col);
+            border-right: 1px solid var(--border-col);
+            border-bottom: 1px solid var(--border-col);
         }
 
         .code-block {
@@ -134,15 +177,11 @@
             border: 1px solid #333;
         }
 
-        ul {
-            list-style-type: none;
-        }
-
-        ul li::before {
+        ul.feature-list li::before {
             content: "•";
-            color: #3b82f6;
+            color: var(--blue-primary);
             font-weight: bold;
-            display: inline-block; 
+            display: inline-block;
             width: 1em;
             margin-left: -1em;
         }
@@ -150,13 +189,17 @@
         footer {
             text-align: center;
             padding: 3rem;
-            color: #475569;
+            color: var(--text-dim);
             font-size: 0.9rem;
-            border-top: 1px solid #1e293b;
+            border-top: 1px solid var(--border-col);
         }
     </style>
 </head>
 <body>
+
+    <button id="theme-toggle" class="theme-switcher">
+        <span id="theme-icon">🌞</span>
+    </button>
 
     <nav>
         <div class="logo">Webserv</div>
@@ -165,6 +208,7 @@
             <li><a href="art.html">Art</a></li>
             <li><a href="form.html">Form</a></li>
             <li><a href="contact.html">Contact</a></li>
+            <li><a href="/cgi-bin/test.py">CGI Test</a></li>
         </ul>
     </nav>
 
@@ -178,7 +222,7 @@
             <h2>Webserv</h2>
             <p>Webserv is a custom HTTP server written entirely in <strong>C++ 98</strong> as part of the 42 curriculum.</p>
             
-            <p style="margin-top: 1rem;">The objective of this project is to build a fully functional, non-blocking web server from scratch, without using any external web server libraries. The server must handle multiple clients simultaneously using a single I/O multiplexing mechanism.</p>
+            <p style="margin-top: 1rem;">The objective of this project is to build a fully functional, non-blocking web server from scratch, without using any external web server libraries.</p>
 
             <div class="code-block">
                 ./webserv [configuration_file]
@@ -187,7 +231,7 @@
             <div class="feature-grid">
                 <div class="feature-card">
                     <h3>Core Features</h3>
-                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <ul class="feature-list" style="list-style: none; margin-left: 1.5rem; margin-top: 0.5rem;">
                         <li>Parse NGINX-inspired config</li>
                         <li>Handle multiple ports/blocks</li>
                         <li>Serve static websites</li>
@@ -198,7 +242,7 @@
                 </div>
                 <div class="feature-card">
                     <h3>Technical Excellence</h3>
-                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <ul class="feature-list" style="list-style: none; margin-left: 1.5rem; margin-top: 0.5rem;">
                         <li>Non-blocking I/O event loop</li>
                         <li>Multiplexing (select, poll, etc.)</li>
                         <li>Chunked transfer decoding</li>
@@ -207,9 +251,6 @@
                     </ul>
                 </div>
             </div>
-
-            <h3 style="margin-top: 2rem; color: #60a5fa;">Configuration Capabilities</h3>
-            <p>The configuration file allows for granular control over the server's behavior, including defining interface/port pairs, limiting client body size, and setting up complex routing with directory listing and CGI support.</p>
         </section>
     </div>
 
@@ -217,6 +258,26 @@
         &copy; 2026 Webserv Project | Coded with passion for 42
     </footer>
 
+    <script>
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const body = document.body;
+
+        if (localStorage.getItem('theme') === 'light') {
+            body.classList.add('light-mode');
+            themeIcon.innerText = '🌙';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('light-mode');
+            if (body.classList.contains('light-mode')) {
+                themeIcon.innerText = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                themeIcon.innerText = '🌞';
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+    </script>
 </body>
 </html>
-
