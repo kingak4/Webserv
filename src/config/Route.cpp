@@ -6,7 +6,7 @@
 /*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:30 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/18 15:01:06 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/02/20 16:36:10 by korzecho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@ Route::Route(Location& loc, Request& request, Config& server_block) : server(ser
     vector<string> method = loc.allowed_methods;
     allowed_methods = loc.allowed_methods;
     autoindex = loc.autoindex;
+	redir_code = loc.redir_code;	
 
     request_method = request.get_Method();
     request_full_path = request.get_Path();
@@ -347,6 +348,18 @@ string Route::form_response()
     FsType filesystem_status;
     string cgi_output;
 
+	if (redir_code == 301 || redir_code == 302)
+	{
+		stringstream ss;
+
+		ss << "HTTP/1.1 " << redir_code << endl
+		<< "Location: " << url << endl
+		<< "Conten-Length: 0" << endl
+		<< "Connection: close";
+
+		return ss.str();
+	}
+
     if (!is_valid_request())
     {
         if (!is_allowed_method())
@@ -356,7 +369,7 @@ string Route::form_response()
     }
 
     filesystem_status = get_filesystem_type();
-    
+
     if (request.get_Method() == "DELETE")
         return handle_delete();
 

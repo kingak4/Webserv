@@ -30,6 +30,7 @@ struct Location
     string url;
     vector<string> allowed_methods;
     string autoindex;
+    int redir_code;
 };
 
 struct ServerData
