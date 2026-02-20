@@ -6,7 +6,7 @@
 /*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:30 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/18 15:01:06 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/02/20 12:23:29 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -337,8 +337,9 @@ string Route::handle_delete()
     return headers.str();
 }
 
-string Route::handle_upload()
+string Route::handle_post() // handle POST method here, not in CGI
 {
+    cout << "Handle POST method here" << endl;
     return "Handle file uploads here";
 }
 
@@ -361,7 +362,7 @@ string Route::form_response()
         return handle_delete();
 
     if (request.get_Method() == "POST" && !is_cgi())
-        return handle_upload();
+        return handle_post();
         
     switch(filesystem_status)
     {
