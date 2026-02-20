@@ -1,43 +1,39 @@
-
-# import os
-
-# """
-# Docstring for www.tests
-# Simple cgi script for testing webserv
-# Prints HTMl response
-# """
-
-# query_string = os.environ["QUERY_STRING"]
-
-# print('Hello', query_string)
-# print()
-# print('Welcome to CGI')
-
 #!/usr/bin/python3
-
+import cgi
 import os
 import sys
-import urllib.parse
+from urllib.parse import parse_qs
 
-print("Content-Type: text/html\n")
+# Determine request method
+method = os.environ.get("REQUEST_METHOD", "GET")
+# Initialize variable
+user_name = "Guest"
 
-if os.environ["REQUEST_METHOD"] == "POST":
-    content_length = int(os.environ.get("CONTENT_LENGTH", 0))
+if method.upper() == "POST":
+    # Read POST data from stdin
+    content_length_str = os.environ.get("CONTENT_LENGTH")
+    content_length = int(os.environ.get("CONTENT_LENGTH") or 0)
     post_data = sys.stdin.read(content_length)
 
-    data = urllib.parse.parse_qs(post_data)
+    # Parse the data
+    # post_data = "name=Alice"
+    form = parse_qs(post_data)
+    user_name = form.get("name", ["Guest"])[0]
+    print('USER NAME', user_name)
 
-    email = data.get("email", [""])[0]
-    subject = data.get("subject", [""])[0]
-    message = data.get("message", [""])[0]
+# Send HTTP header
+print("Content-Type: text/html")
+print()  # Blank line separates header from body
 
-    # Store in file
-    with open("messages.txt", "a") as f:
-        f.write(f"Email: {email}\n")
-        f.write(f"Subject: {subject}\n")
-        f.write(f"Message: {message}\n")
-        f.write("-----\n")
-
-    print("<h1>Message received</h1>")
-else:
-    print("<h1>Invalid request</h1>")
+# Output HTML
+print(f"""<html>
+<head><title>CGI POST Demo</title></head>
+<body>
+<h1>Hello, {user_name}!</h1>
+<form method="post" action="">
+    <label for="name">Enter your name:</label>
+    <input type="text" id="name" name="name" value="{user_name}">
+    <button type="submit">Submit</button>
+</form>
+</body>
+</html>""")
