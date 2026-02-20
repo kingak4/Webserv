@@ -240,7 +240,7 @@
             formData.append('message', document.getElementById('message').value);
 
             try {
-                const response = await fetch('/cgi-bin/test.py', {
+                const response = await fetch('/contact', {
                     method: 'POST',
                     body: formData
                 });
