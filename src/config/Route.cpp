@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Route.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
+/*   By: kikwasni <kikwasni@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:30 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/18 15:01:06 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/02/20 11:38:30 by kikwasni         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -339,6 +339,7 @@ string Route::handle_delete()
 
 string Route::handle_upload()
 {
+    cout << "Handle file uploads here" << endl;
     return "Handle file uploads here";
 }
 
