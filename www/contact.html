@@ -14,6 +14,20 @@
             --text-main: #e0e6ed;
             --text-dim: #94a3b8;
             --input-bg: #0f172a;
+            --nav-bg: rgba(13, 25, 48, 0.95);
+            --border-col: #1e293b;
+        }
+
+        body.light-mode {
+            --bg-dark: #f0f4f8;
+            --card-bg: #ffffff;
+            --blue-primary: #2563eb;
+            --blue-glow: #cbd5e0;
+            --text-main: #1a202c;
+            --text-dim: #4a5568;
+            --input-bg: #edf2f7;
+            --nav-bg: rgba(255, 255, 255, 0.95);
+            --border-col: #e2e8f0;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -26,13 +40,13 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            transition: background-color 0.3s, color 0.3s;
         }
 
-        /* Navbar */
         nav {
-            background: rgba(13, 25, 48, 0.95);
-            backdrop-filter: blur(12px);
-            padding: 1rem 10%;
+            background: var(--nav-bg);
+            backdrop-filter: blur(10px);
+            padding: 1rem 5%;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -43,21 +57,44 @@
             border-bottom: 1px solid var(--blue-glow);
         }
 
-        .logo { font-weight: 800; font-size: 1.5rem; color: var(--blue-primary); text-decoration: none; }
+        .logo {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--blue-primary);
+            letter-spacing: -1px;
+            text-decoration: none;
+        }
 
-        nav ul { display: flex; list-style: none; }
+        nav ul { display: flex; list-style: none; align-items: center; }
         nav ul li { margin-left: 2rem; }
         nav ul li a {
             text-decoration: none;
             color: var(--text-dim);
             font-weight: 600;
-            font-size: 0.9rem;
-            text-transform: uppercase;
             transition: 0.3s;
         }
         nav ul li a:hover { color: var(--blue-primary); }
 
-        /* Main Content */
+        .theme-switcher {
+            position: fixed;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 2000;
+            background: var(--card-bg);
+            border: 1px solid var(--blue-primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        }
+
         .container {
             max-width: 800px;
             margin: 120px auto 40px;
@@ -69,34 +106,27 @@
             background: var(--card-bg);
             padding: 3rem;
             border-radius: 20px;
-            border: 1px solid #1e293b;
+            border: 1px solid var(--border-col);
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         h2 { color: var(--blue-primary); font-size: 2.2rem; margin-bottom: 10px; text-align: center; }
         .subtitle { text-align: center; color: var(--text-dim); margin-bottom: 30px; }
 
-        /* Form Styles */
         .input-group { display: flex; flex-direction: column; margin-bottom: 20px; }
         .input-group label { margin-bottom: 8px; font-weight: 600; color: var(--text-dim); font-size: 0.9rem; }
 
         input, textarea {
             background: var(--input-bg);
-            border: 1px solid #1e293b;
+            border: 1px solid var(--border-col);
             padding: 14px;
             border-radius: 8px;
-            color: white;
+            color: var(--text-main);
             outline: none;
-            transition: 0.3s;
-            font-family: inherit;
+            width: 100%;
         }
 
         textarea { min-height: 180px; resize: vertical; }
-
-        input:focus, textarea:focus {
-            border-color: var(--blue-primary);
-            box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
-        }
 
         .btn-send {
             background: linear-gradient(to right, #2563eb, #3b82f6);
@@ -108,13 +138,11 @@
             cursor: pointer;
             width: 100%;
             text-transform: uppercase;
-            letter-spacing: 1px;
             transition: 0.3s;
         }
 
         .btn-send:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4); }
 
-        /* Thank you message */
         #thanks-message {
             display: none;
             text-align: center;
@@ -127,20 +155,23 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .success-icon { font-size: 4rem; margin-bottom: 20px; display: block; }
-
-        footer { text-align: center; padding: 2rem; color: #475569; font-size: 0.8rem; }
+        footer { text-align: center; padding: 2rem; color: var(--text-dim); font-size: 0.8rem; border-top: 1px solid var(--border-col); }
     </style>
 </head>
 <body>
 
+    <button id="theme-toggle" class="theme-switcher">
+        <span id="theme-icon">🌞</span>
+    </button>
+
     <nav>
-        <a href="index.html" class="logo">Webserv</a>
+        <a href="home.html" class="logo">Webserv</a>
         <ul>
             <li><a href="home.html">Home</a></li>
             <li><a href="art.html">Art</a></li>
             <li><a href="form.html">Form</a></li>
             <li><a href="contact.html" style="color: var(--blue-primary);">Contact</a></li>
+            <li><a href="/cgi-bin/test.py">CGI Test</a></li>
         </ul>
     </nav>
 
@@ -153,17 +184,17 @@
                 <form id="contact-form" onsubmit="sendQuestion(event)">
                     <div class="input-group">
                         <label>Your Email Address</label>
-                        <input type="email" placeholder="name@example.com" required>
+                        <input type="email" id="email" placeholder="name@example.com" required>
                     </div>
 
                     <div class="input-group">
                         <label>Subject</label>
-                        <input type="text" placeholder="What is your question about?" required>
+                        <input type="text" id="subject" placeholder="What is your question about?" required>
                     </div>
 
                     <div class="input-group">
                         <label>Question</label>
-                        <textarea placeholder="Write your full question here..." required></textarea>
+                        <textarea id="message" placeholder="Write your full question here..." required></textarea>
                     </div>
 
                     <button type="submit" class="btn-send">Send Message</button>
@@ -171,7 +202,7 @@
             </div>
 
             <div id="thanks-message">
-                <span class="success-icon">✉️</span>
+                <span style="font-size: 4rem;">✉️</span>
                 <h2 style="color: #22c55e;">Thank you for your question!</h2>
                 <p>We have received your message and we will answer shortly.</p>
                 <button class="btn-send" style="margin-top: 30px; width: auto; padding: 12px 30px;" onclick="location.reload()">Send another message</button>
@@ -180,20 +211,51 @@
     </div>
 
     <footer>
-        &copy; 2026 Webserv Project | Coded for 42 Curriculum
+        &copy; 2026 Webserv Project | Coded with passion for 42
     </footer>
 
     <script>
-        function sendQuestion(event) {
-            event.preventDefault(); // Prevent page reload
-            
-            // Hide the form content
-            document.getElementById('contact-content').style.display = 'none';
-            
-            // Show the thank you message
-            document.getElementById('thanks-message').style.display = 'block';
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const body = document.body;
+
+        if (localStorage.getItem('theme') === 'light') {
+            body.classList.add('light-mode');
+            themeIcon.innerText = '🌙';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('light-mode');
+            const isLight = body.classList.contains('light-mode');
+            themeIcon.innerText = isLight ? '🌙' : '🌞';
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        });
+
+        async function sendQuestion(event) {
+            event.preventDefault();
+
+            const formData = new FormData();
+            formData.append('email', document.getElementById('email').value);
+            formData.append('subject', document.getElementById('subject').value);
+            formData.append('message', document.getElementById('message').value);
+
+            try {
+                const response = await fetch('/cgi-bin/contact.py', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    document.getElementById('contact-content').style.display = 'none';
+                    document.getElementById('thanks-message').style.display = 'block';
+                } else {
+                    alert('Server error: ' + response.status + '. Check if POST is allowed for CGI.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error. Is Webserv running?');
+            }
         }
     </script>
-
 </body>
 </html>
