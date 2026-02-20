@@ -282,20 +282,11 @@ string process_request(const string &request_str, Client &client, ConfigParser &
 	stringstream ss;
 	ss << "Request recived: " << parser.get_Method() << " " << parser.get_Path() << " on port " << client.get_Server()->get_port() << ".";
 	Console::message(ss.str(), type, true);
-	// if (parser.is_Valid())
-	// 	return "HTTP/1.1 200 OK\r\n\r\nHello World";
-	// else
-	// 	return "HTTP/1.1 400 OK\r\n\r\n";
+
 	Request request;
     request.buildFromParser(parser);
 
     return find_requested_server(request, config_parser, client);
-
-	// cout << "Request recived: " << parser.get_Method() << " " << parser.get_Path() << " on port " << client.get_Server()->get_port() << "." << endl;
-	// if (parser.is_Valid())
-	// 	return "HTTP/1.1 200 OK\r\n\r\nHello World";
-	// else
-	// 	return "HTTP/1.1 400 OK\r\n\r\n";
 }
 
 void handle_Read(struct epoll_event &event, Client &client, ConfigParser &config_parser)

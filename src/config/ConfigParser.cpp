@@ -6,7 +6,7 @@
 /*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:23 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/11 16:55:25 by apple            ###   ########.fr       */
+/*   Updated: 2026/02/20 16:34:57 by korzecho         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,6 +87,7 @@ void ConfigParser::parse_route_block(string line, Location& loc)
     size_t pos;
     string temp_str;
     string str_methods;
+    string str_return;
 
     if ((pos = line.find("location")) != string::npos)
         loc.route_name = trim_str(line.substr(pos + string("location").length()));
@@ -104,6 +105,20 @@ void ConfigParser::parse_route_block(string line, Location& loc)
     }
     else if ((pos = line.find("autoindex")) != string::npos)
         loc.autoindex = trim_str(line.substr(pos + string("autoindex").length())); 
+    else if ((pos = line.find("return")) != string::npos)
+    {
+        string url;
+        int code;
+
+        str_return = trim_str(line.substr(pos + string("return").length()));
+        istringstream iss(str_return);
+
+        iss >> code;
+        iss >> url;
+        loc.redir_code = code;
+        loc.url = url;
+        loc.allowed_methods.push_back("GET");
+    }
 }
 
 void ConfigParser::parse_config_file(string& filename)
@@ -146,6 +161,7 @@ void ConfigParser::parse_config_file(string& filename)
         if (line.find("location") != string::npos)
         {
             current_location = Location();
+			current_location.redir_code = 0;
             in_location = true;
             parse_route_block(line, current_location);
             continue;

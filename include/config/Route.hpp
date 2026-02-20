@@ -46,6 +46,7 @@ class Route
         string url;
         vector<string> allowed_methods;
         string autoindex;
+        int redir_code;
 
         string filesystem_path;
 
