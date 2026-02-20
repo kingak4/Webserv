@@ -1,47 +1,93 @@
-<!doctype html>
-<html>
-    <head>
-        <title>Error 404</title>
-        <meta charset="utf-8">
-        <style>
-            body {
-                margin: 0;
-            }
-            .error-block {
-                position: reltive;
-                width: 100vw;
-                height: 100vh;
-            }
-            .error-text {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                text-align: center;
-                color: rgb(0, 0, 0);
-                text-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
-            }
-            .error {
-                font-family: "Montserrat", sans-serif;
-                font-weight: 800;
-                font-size: clamp(4rem, 12vw, 10rem);
-                margin: 0;
-            }
-            .explain {
-                font-family: "Montserrat", sans-serif;
-                font-weight: 400;
-                font-size: clamp(1.5rem, 4vw, 3rem);
-                margin: 0;
-                margin-top: 0.5em;
-            }
-        </style>
-    </head>
-        <body>
-            <div class="error-block">
-                <div class="error-text">
-                    <h1 class="error">404</h1>
-                    <h2 class="explain">Page not found</h2>
-                </div>
-            </div>
-        </body>
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #0a192f;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #e6f1ff;
+        }
+
+        .error-container {
+            text-align: center;
+            padding: 3rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h1 {
+            font-size: 8rem;
+            margin: 0;
+            background: linear-gradient(135deg, #f06292, #9c27b0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+        }
+
+        .emoji {
+            font-size: 4rem;
+            margin: 10px 0;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            color: #f06292;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #8892b0;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 12px 30px;
+            color: #f06292;
+            text-decoration: none;
+            border: 1px solid #f06292;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            background: rgba(240, 98, 146, 0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(240, 98, 146, 0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="error-container">
+        <h1>404</h1>
+        <div class="emoji">🚀</div>
+        <h2>Page Not Found</h2>
+        <p>
+            Oops! It looks like you've drifted into deep space.
+            The page you are looking for doesn't exist or has been moved.
+        </p>
+        <a href="../home.html" class="btn">Go Back Home</a>
+    </div>
+
+</body>
 </html>
