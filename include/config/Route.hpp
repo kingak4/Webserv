@@ -6,7 +6,7 @@
 /*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:13:02 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/17 16:34:18 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/02/20 12:19:23 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,7 @@ class Route
         string serve_static_file();
         string handle_autoindex();
         string serve_directory_listing(string& filesystem_path);
-        string handle_upload();
+        string handle_post();
 
         // VALIDATION CHECKS
         bool is_valid_request_path();
