@@ -337,11 +337,33 @@ string Route::handle_delete()
     return headers.str();
 }
 
-string Route::handle_post() // handle POST method here, not in CGI
+string Route::handle_post() 
 {
-    cout << "Handle POST method here" << endl;
-    return "Handle file uploads here";
+    string body = request.get_Body();
+
+    if (body.empty())
+        return error_response("400");
+
+    if (body.size() > server.get_client_max_body_size())
+        return error_response("413");
+
+    ofstream file(filesystem_path.c_str(), ios::binary);
+    if (!file.is_open())
+        return error_response("500");
+
+    file.write(body.c_str(), body.size());
+    file.close();
+
+    ostringstream response;
+    response << "HTTP/1.1 201 Created\r\n";
+    response << "Content-Length: 0\r\n";
+    response << "Connection: close\r\n\r\n";
+
+    return response.str();
+    //return(string());
 }
+
+
 
 string Route::form_response()
 {

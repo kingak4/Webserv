@@ -60,6 +60,7 @@ class ConfigParser
         void parse_config_file(string& filename);
         string get_absolute_path_to_dict(string root);
 
+
         const vector<ServerData>& get_config_servers() const;
 };
 

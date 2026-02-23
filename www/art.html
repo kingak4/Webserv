@@ -15,6 +15,7 @@
             --text-dim: #94a3b8;
             --nav-bg: rgba(13, 25, 48, 0.95);
             --border-col: #1e293b;
+            --red-delete: #ef4444;
         }
 
         body.light-mode {
@@ -139,6 +140,21 @@
 
         button.upload-btn:hover { background: #2563eb; transform: translateY(-2px); }
 
+        .delete-btn {
+            background: var(--red-delete);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 25px;
+            width: 100%;
+        }
+
+        .delete-btn:hover { background: #dc2626; transform: scale(1.01); }
+
         .gallery-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -159,6 +175,11 @@
             background-size: cover;
             background-position: center;
             overflow: hidden;
+        }
+
+        .art-item.placeholder {
+            border-style: dotted;
+            opacity: 0.5;
         }
     </style>
 </head>
@@ -202,10 +223,12 @@
         <section class="section-card">
             <h2>Art Gallery</h2>
             <div class="gallery-grid" id="gallery">
-                <div class="art-item">Gallery Item 1</div>
-                <div class="art-item">Gallery Item 2</div>
-                <div class="art-item">Gallery Item 3</div>
+                <div class="art-item placeholder">Gallery Item 1</div>
+                <div class="art-item placeholder">Gallery Item 2</div>
+                <div class="art-item placeholder">Gallery Item 3</div>
             </div>
+            
+            <button class="delete-btn" id="delete-art-btn">Delete Art</button>
         </section>
     </div>
 
@@ -230,12 +253,14 @@
         const fileNameLabel = document.getElementById('file-name');
         const uploadBtn = document.getElementById('submit-upload');
         const gallery = document.getElementById('gallery');
+        const deleteBtn = document.getElementById('delete-art-btn');
 
         fileInput.addEventListener('change', () => {
             if (fileInput.files.length > 0) {
                 fileNameLabel.innerText = "Selected: " + fileInput.files[0].name;
             }
         });
+
 
         uploadBtn.addEventListener('click', async () => {
             if (fileInput.files.length === 0) {
@@ -254,12 +279,12 @@
                 });
 
                 if (response.ok) {
-                    alert('Successfully uploaded to Webserv!');
+                    alert('Successfully uploaded!');
                     
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         const newArt = document.createElement('div');
-                        newArt.className = 'art-item';
+                        newArt.className = 'art-item uploaded-art'; // Dodajemy klasę dla plików
                         newArt.style.backgroundImage = `url(${e.target.result})`;
                         newArt.innerText = '';
                         gallery.prepend(newArt);
@@ -272,8 +297,32 @@
                     alert('Server error: ' + response.status);
                 }
             } catch (err) {
-                console.error(err);
-                alert('Connection error. Is your C++ Webserv running?');
+                alert('Connection error. Is Webserv running?');
+            }
+        });
+
+        deleteBtn.addEventListener('click', () => {
+            const uploadedItems = gallery.querySelectorAll('.uploaded-art');
+            
+            if (uploadedItems.length === 0) {
+                alert("Gallery is empty (no uploaded files to delete)");
+                return;
+            }
+
+            const choice = prompt(`You have ${uploadedItems.length} uploaded image(s). Which one to delete? (1 to ${uploadedItems.length})`);
+
+            if (choice === null) return;
+
+            const index = parseInt(choice) - 1;
+
+            if (!isNaN(index) && index >= 0 && index < uploadedItems.length) {
+                const confirmDelete = confirm(`Delete uploaded image ${choice}?`);
+                if (confirmDelete) {
+                    uploadedItems[index].remove();
+                    alert("Image removed from gallery.");
+                }
+            } else {
+                alert("Invalid choice. Enter a number between 1 and " + uploadedItems.length);
             }
         });
     </script>
