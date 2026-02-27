@@ -408,11 +408,31 @@ string Route::handle_post()
         struct stat st;
         if (stat(upload_dir.c_str(), &st) != 0)
             mkdir(upload_dir.c_str(), 0777);
-        string file_path = upload_dir + "/post_body.txt";
+        // string file_path = upload_dir + "/post_body.txt";
+        string filename;
+        size_t name_start = body.find("filename=") + 10; // make  invidual file name for files in upolads 
+        size_t name_end = body.find("\"", name_start);
+        if (name_start != string::npos && name_end != string::npos)
+        filename = body.substr(name_start, name_end - name_start);
+        
+        string file_path = upload_dir + "/" + filename;
         ofstream file(file_path.c_str(), ios::binary);
         if (!file.is_open())
             return error_response("500");
-        file.write(body.c_str(), body.size());
+        //file.write(body.c_str(), body.size());
+        		// 1. Find the end of the headers
+		string headerEnd = "\r\n\r\n";
+		size_t dataStart = body.find(headerEnd, name_end) + headerEnd.length();
+		// 2. Find the start of the closing boundary
+		string boundary = "------geckoformboundary";
+		size_t dataEnd = body.find(boundary, dataStart);
+		// 3. Calculate length (subtract 2 to remove the \r\n before the boundary)
+		size_t fileLength = (dataEnd - 2) - dataStart;
+		// 4. Extract and Write as BINARY
+		string fileData = body.substr(dataStart, fileLength);
+        if (!file.is_open())
+            return error_response("500");
+        file.write(fileData.c_str(), body.size());
         file.close();
         ostringstream response;
         response << "HTTP/1.1 201 Created\r\n";
