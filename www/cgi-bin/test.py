@@ -6,13 +6,19 @@ from urllib.parse import parse_qs
 
 method = os.environ.get("REQUEST_METHOD", "GET")
 user_name = "Guest"
+form = {}
 
-if method.upper() == "POST":
+if method.upper() == "GET":
+    query_string = os.environ.get("QUERY_STRING", "")
+    form = parse_qs(query_string)
+
+elif method.upper() == "POST":
     content_length = int(os.environ.get("CONTENT_LENGTH") or 0)
     post_data = sys.stdin.read(content_length)
-
     form = parse_qs(post_data)
-    user_name = form.get("name", ["Guest"])[0]
+    
+if "name" in form:
+    user_name = form["name"]
     print('USER NAME', user_name)
 
 print("Content-Type: text/html")

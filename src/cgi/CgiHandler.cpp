@@ -27,7 +27,7 @@ std::string CgiHandler::trim(const std::string& str)
     if (str.empty())
         return "";
 
-    end--; // last index
+    end--;
 
     while (start <= end && (str[start] == ' ' || str[start] == '\t' || str[start] == '\n'))
         ++start;
@@ -115,8 +115,7 @@ std::string CgiHandler::run()
         envp_str.push_back("SERVER_PROTOCOL=" + request.get_Version());
         envp_str.push_back("GATEWAY_INTERFACE=CGI/1.1");
 
-        if (request.get_Method() == "GET")
-            envp_str.push_back("QUERY_STRING=" + route.get_request_query());
+        envp_str.push_back("QUERY_STRING=" + route.get_request_query());
 
         if (request.get_Method() == "POST")
         {
