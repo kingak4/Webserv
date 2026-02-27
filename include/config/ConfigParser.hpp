@@ -30,6 +30,7 @@ struct Location
     string url;
     vector<string> allowed_methods;
     string autoindex;
+    int redir_code;
 };
 
 struct ServerData
@@ -59,7 +60,6 @@ class ConfigParser
         void parse_route_block(string line, Location& loc);
         void parse_config_file(string& filename);
         string get_absolute_path_to_dict(string root);
-
 
         const vector<ServerData>& get_config_servers() const;
 };
