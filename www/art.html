@@ -15,6 +15,7 @@
             --text-dim: #94a3b8;
             --nav-bg: rgba(13, 25, 48, 0.95);
             --border-col: #1e293b;
+            --red-delete: #ef4444;
         }
 
         body.light-mode {
@@ -139,6 +140,21 @@
 
         button.upload-btn:hover { background: #2563eb; transform: translateY(-2px); }
 
+        .delete-btn {
+            background: var(--red-delete);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 25px;
+            width: 100%;
+        }
+
+        .delete-btn:hover { background: #dc2626; transform: scale(1.01); }
+
         .gallery-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -152,6 +168,7 @@
             border: 1px solid var(--border-col);
             border-radius: 10px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             color: var(--text-dim);
@@ -159,6 +176,23 @@
             background-size: cover;
             background-position: center;
             overflow: hidden;
+            position: relative;
+        }
+
+        .art-item.placeholder {
+            border-style: dotted;
+            opacity: 0.5;
+        }
+
+        .art-info {
+            position: absolute;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            width: 100%;
+            text-align: center;
+            padding: 5px;
+            color: white;
+            font-size: 10px;
         }
     </style>
 </head>
@@ -202,14 +236,17 @@
         <section class="section-card">
             <h2>Art Gallery</h2>
             <div class="gallery-grid" id="gallery">
-                <div class="art-item">Gallery Item 1</div>
-                <div class="art-item">Gallery Item 2</div>
-                <div class="art-item">Gallery Item 3</div>
+                <div class="art-item placeholder">Gallery Item 1</div>
+                <div class="art-item placeholder">Gallery Item 2</div>
+                <div class="art-item placeholder">Gallery Item 3</div>
             </div>
+            
+            <button class="delete-btn" id="delete-art-btn">Delete Art</button>
         </section>
     </div>
 
     <script>
+
         const themeToggle = document.getElementById('theme-toggle');
         const themeIcon = document.getElementById('theme-icon');
         const body = document.body;
@@ -226,10 +263,12 @@
             localStorage.setItem('theme', isLight ? 'light' : 'dark');
         });
 
+
         const fileInput = document.getElementById('file-upload');
         const fileNameLabel = document.getElementById('file-name');
         const uploadBtn = document.getElementById('submit-upload');
         const gallery = document.getElementById('gallery');
+        const deleteBtn = document.getElementById('delete-art-btn');
 
         fileInput.addEventListener('change', () => {
             if (fileInput.files.length > 0) {
@@ -248,21 +287,33 @@
             formData.append('file', file);
 
             try {
-                const response = await fetch('/cgi-bin/upload.py', {
+                const response = await fetch('/uploads', {
                     method: 'POST',
                     body: formData
                 });
 
                 if (response.ok) {
-                    alert('Successfully uploaded to Webserv!');
-                    
                     const reader = new FileReader();
                     reader.onload = function(e) {
+                        const placeholders = gallery.querySelectorAll('.placeholder');
+                        
                         const newArt = document.createElement('div');
-                        newArt.className = 'art-item';
+                        newArt.className = 'art-item uploaded-art'; 
+                        newArt.dataset.filename = file.name;
                         newArt.style.backgroundImage = `url(${e.target.result})`;
-                        newArt.innerText = '';
-                        gallery.prepend(newArt);
+                        
+                        const info = document.createElement('div');
+                        info.className = 'art-info';
+                        info.innerText = file.name;
+                        newArt.appendChild(info);
+
+                        if (placeholders.length > 0) {
+                            placeholders[0].replaceWith(newArt);
+                        } else {
+                            gallery.prepend(newArt);
+                        }
+                        
+                        alert('Successfully uploaded!');
                     }
                     reader.readAsDataURL(file);
                     
@@ -272,8 +323,55 @@
                     alert('Server error: ' + response.status);
                 }
             } catch (err) {
-                console.error(err);
-                alert('Connection error. Is your C++ Webserv running?');
+                alert('Connection error. Is Webserv running?');
+            }
+        });
+
+        deleteBtn.addEventListener('click', async () => {
+            const uploadedItems = gallery.querySelectorAll('.uploaded-art');
+            
+            if (uploadedItems.length === 0) {
+                alert("Gallery is empty (no uploaded files to delete)");
+                return;
+            }
+
+            const choice = prompt(`Which one to delete? (1 to ${uploadedItems.length})`);
+            if (choice === null) return;
+
+            const index = parseInt(choice) - 1;
+
+            if (!isNaN(index) && index >= 0 && index < uploadedItems.length) {
+                const targetItem = uploadedItems[index];
+                const filenameToDelete = targetItem.dataset.filename;
+
+                const confirmDelete = confirm(`Delete ${filenameToDelete} from server?`);
+                if (confirmDelete) {
+                    try {
+                        const response = await fetch(`/uploads`, {
+                            method: 'DELETE',
+                            headers: {
+                                'File-To-Delete': filenameToDelete
+                            }
+                        });
+
+                        if (response.ok || response.status === 204) {
+                            const placeholder = document.createElement('div');
+                            placeholder.className = 'art-item placeholder';
+                            placeholder.innerText = 'Gallery Item Placeholder';
+                            
+                            targetItem.remove();
+                            gallery.appendChild(placeholder);
+                            
+                            alert("Successfully deleted from server! 🗑️");
+                        } else {
+                            alert("Server refused to delete. Status: " + response.status);
+                        }
+                    } catch (err) {
+                        alert("Error connecting to server to delete file.");
+                    }
+                }
+            } else {
+                alert("Invalid choice.");
             }
         });
     </script>

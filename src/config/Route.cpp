@@ -20,7 +20,6 @@ Route::Route(Location& loc, Request& request, Config& server_block) : server(ser
     vector<string> method = loc.allowed_methods;
     allowed_methods = loc.allowed_methods;
     autoindex = loc.autoindex;
-	redir_code = loc.redir_code;	
 
     request_method = request.get_Method();
     request_full_path = request.get_Path();
@@ -316,50 +315,189 @@ bool Route::is_valid_request()
     return true;
 }
 
-string Route::handle_delete()
+// string Route::handle_delete()
+// {
+//     struct stat st;
+
+//     if (stat(filesystem_path.c_str(), &st) != 0)
+//         return error_response("404");
+
+//     if (!S_ISREG(st.st_mode))
+//         return error_response("403");
+
+//     if (unlink(filesystem_path.c_str()) != 0)
+//         return error_response("403");
+
+//     ostringstream headers;
+//     headers << "HTTP/1.1 204 No Content\r\n";
+//     headers << "Content-Length: 0\r\n";
+//     headers << "Connection: close\r\n";
+//     headers << "\r\n";
+
+//     return headers.str();
+// }
+string Route::handle_delete() 
 {
+    string root = server.get_root_dir(); 
+    map<string, string> h_map = request.get_Headers();
+    string filename = "";
+
+    if (h_map.count("File-To-Delete") > 0)
+        filename = h_map["File-To-Delete"];
+    else if (h_map.count("file-to-delete") > 0)
+        filename = h_map["file-to-delete"];
+    if (filename.empty())
+    {
+        string path = request.get_Path();
+        size_t last_slash = path.find_last_of('/');
+        if (last_slash != string::npos && last_slash < path.length() - 1) 
+        {
+            filename = path.substr(last_slash + 1);
+        }
+    }
+    if (filename.empty() || filename == "uploads" || filename == "uploads/") 
+    {
+       // std::cout << "[ERROR] DELETE: No filename provided or target is a directory!" << std::endl;
+        return error_response("400");
+    }
+    string full_path = root + "/uploads/" + filename;
+    //std::cout << "DEBUG: Final path to delete: " << full_path << std::endl;
     struct stat st;
-
-    if (stat(filesystem_path.c_str(), &st) != 0)
+    if (stat(full_path.c_str(), &st) != 0) 
+    {
+        //std::cout << "DEBUG: File not found: " << full_path << std::endl;
         return error_response("404");
-
-    if (!S_ISREG(st.st_mode))
+    }
+    if (S_ISDIR(st.st_mode)) 
+    {
+        //std::cout << "[ERROR] DELETE: Target is a directory!" << std::endl;
         return error_response("403");
-
-    if (unlink(filesystem_path.c_str()) != 0)
-        return error_response("403");
-
-    ostringstream headers;
-    headers << "HTTP/1.1 204 No Content\r\n";
-    headers << "Content-Length: 0\r\n";
-    headers << "Connection: close\r\n";
-    headers << "\r\n";
-
-    return headers.str();
+    }
+    if (unlink(full_path.c_str()) != 0) 
+    {
+        //std::cout << "Unlink failed! Error: " << strerror(errno) << std::endl;
+        return error_response("500");
+    }
+    std::ostringstream resp;
+    resp << "HTTP/1.1 204 No Content\r\n";
+    resp << "Access-Control-Allow-Origin: *\r\n";
+    resp << "Content-Length: 0\r\n";
+    resp << "Connection: close\r\n";
+    resp << "\r\n";
+    return (resp.str());
 }
 
-string Route::handle_post() // handle POST method here, not in CGI
+string Route::handle_post()
 {
-    cout << "Handle POST method here" << endl;
-    return "Handle file uploads here";
+    string body = request.get_Body();
+
+    if (body.empty())
+        return error_response("400");
+
+    if (body.size() > server.get_client_max_body_size())
+        return error_response("413");
+
+    map<string, string> headers = request.get_Headers();
+    string content_type = "";
+    if (headers.find("Content-Type") != headers.end())
+        content_type = headers["Content-Type"];
+
+    if (content_type.find("multipart/form-data") == string::npos)
+    {
+        string upload_dir = server.get_root_dir() + "/uploads";
+        struct stat st;
+        if (stat(upload_dir.c_str(), &st) != 0)
+            mkdir(upload_dir.c_str(), 0777);
+        // string file_path = upload_dir + "/post_body.txt";
+        string filename;
+        size_t name_start = body.find("filename=") + 10; // make  invidual file name for files in upolads 
+        size_t name_end = body.find("\"", name_start);
+        if (name_start != string::npos && name_end != string::npos)
+        filename = body.substr(name_start, name_end - name_start);
+        
+        string file_path = upload_dir + "/" + filename;
+        ofstream file(file_path.c_str(), ios::binary);
+        if (!file.is_open())
+            return error_response("500");
+        //file.write(body.c_str(), body.size());
+        		// 1. Find the end of the headers
+		string headerEnd = "\r\n\r\n";
+		size_t dataStart = body.find(headerEnd, name_end) + headerEnd.length();
+		// 2. Find the start of the closing boundary
+		string boundary = "------geckoformboundary";
+		size_t dataEnd = body.find(boundary, dataStart);
+		// 3. Calculate length (subtract 2 to remove the \r\n before the boundary)
+		size_t fileLength = (dataEnd - 2) - dataStart;
+		// 4. Extract and Write as BINARY
+		string fileData = body.substr(dataStart, fileLength);
+        if (!file.is_open())
+            return error_response("500");
+        file.write(fileData.c_str(), body.size());
+        file.close();
+        ostringstream response;
+        response << "HTTP/1.1 201 Created\r\n";
+        response << "Content-Length: 0\r\n";
+        response << "Connection: close\r\n\r\n";
+        return response.str();
+    }
+    size_t boundary_pos = content_type.find("boundary=");
+    if (boundary_pos == string::npos)
+        return error_response("400");
+    string boundary = "--" + content_type.substr(boundary_pos + 9);
+    size_t pos = 0;
+    while ((pos = body.find(boundary, pos)) != string::npos)
+    {
+        size_t start = pos + boundary.size() + 2;
+        size_t end = body.find(boundary, start);
+        if (end == string::npos)
+            break;
+        string part = body.substr(start, end - start);
+        size_t header_end = part.find("\r\n\r\n");
+        if (header_end == string::npos)
+        {
+            pos = end;
+            continue;
+        }
+        string part_header = part.substr(0, header_end);
+        string part_body = part.substr(header_end + 4);
+        time_t now = time(NULL);
+        char timestamp[32];
+        sprintf(timestamp, "%ld", now);
+        string filename = "upload_";
+        filename += timestamp;
+        filename += ".dat";
+        size_t fn_pos = part_header.find("filename=\"");
+        if (fn_pos != string::npos)
+        {
+            size_t fn_end = part_header.find("\"", fn_pos + 10);
+            if (fn_end != string::npos)
+                filename = part_header.substr(fn_pos + 10, fn_end - (fn_pos + 10));
+        }
+
+        string upload_dir = server.get_root_dir() + "/uploads";
+        struct stat st;
+        if (stat(upload_dir.c_str(), &st) != 0)
+            mkdir(upload_dir.c_str(), 0777);
+
+        string full_path = upload_dir + "/" + filename;
+        ofstream file(full_path.c_str(), ios::binary);
+        if (!file.is_open())
+            return error_response("500");
+        file.write(part_body.c_str(), part_body.size());
+        file.close();
+        pos = end;
+    }
+    ostringstream response;
+    response << "HTTP/1.1 201 Created\r\n";
+    response << "Content-Length: 0\r\n";
+    response << "Connection: close\r\n\r\n";
+    return (response.str());
 }
 
 string Route::form_response()
 {
     FsType filesystem_status;
     string cgi_output;
-
-	if (redir_code == 301 || redir_code == 302)
-	{
-		stringstream ss;
-
-		ss << "HTTP/1.1 " << redir_code << endl
-		<< "Location: " << url << endl
-		<< "Conten-Length: 0" << endl
-		<< "Connection: close";
-
-		return ss.str();
-	}
 
     if (!is_valid_request())
     {
@@ -370,7 +508,7 @@ string Route::form_response()
     }
 
     filesystem_status = get_filesystem_type();
-
+    
     if (request.get_Method() == "DELETE")
         return handle_delete();
 

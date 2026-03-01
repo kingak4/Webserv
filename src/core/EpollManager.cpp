@@ -282,11 +282,20 @@ string process_request(const string &request_str, Client &client, ConfigParser &
 	stringstream ss;
 	ss << "Request recived: " << parser.get_Method() << " " << parser.get_Path() << " on port " << client.get_Server()->get_port() << ".";
 	Console::message(ss.str(), type, true);
-
+	// if (parser.is_Valid())
+	// 	return "HTTP/1.1 200 OK\r\n\r\nHello World";
+	// else
+	// 	return "HTTP/1.1 400 OK\r\n\r\n";
 	Request request;
     request.buildFromParser(parser);
 
     return find_requested_server(request, config_parser, client);
+
+	// cout << "Request recived: " << parser.get_Method() << " " << parser.get_Path() << " on port " << client.get_Server()->get_port() << "." << endl;
+	// if (parser.is_Valid())
+	// 	return "HTTP/1.1 200 OK\r\n\r\nHello World";
+	// else
+	// 	return "HTTP/1.1 400 OK\r\n\r\n";
 }
 
 void handle_Read(struct epoll_event &event, Client &client, ConfigParser &config_parser)
@@ -298,12 +307,14 @@ void handle_Read(struct epoll_event &event, Client &client, ConfigParser &config
 		ssize_t count = read(event.data.fd, buffer, sizeof(buffer));		
 		if (count == -1)
 		{
-			client.set_Response(process_request(client.get_Buffer(), client, config_parser));
-			stringstream portStr;
-
-			portStr << endl << "Port: " << client.get_Server()->get_port();
-			client.set_Response(client.get_Response() + portStr.str());
-			break;
+			if (client.get_is_header_readed() && client.get_content_len() <= 0)
+			{
+				client.set_Response(process_request(client.get_Buffer(), client, config_parser));
+				break;
+			}
+			client.set_is_header_readed(false);
+			client.set_content_len(0);
+			return;
 		}
 		else if (count == 0)
 		{
@@ -315,7 +326,45 @@ void handle_Read(struct epoll_event &event, Client &client, ConfigParser &config
 			break;
 		}
 		else
-			client.append_Buffer(buffer, count);
+        {
+            client.append_Buffer(buffer, count);
+
+            if (!client.get_is_header_readed())
+            {
+                size_t pos_end_head = client.get_Buffer().find("\r\n\r\n");
+                if (pos_end_head != string::npos)
+                {
+                    client.set_is_header_readed(true);
+
+                    string buf = client.get_Buffer();
+                    string len_str = "Content-Length: ";
+                    size_t pos = buf.find(len_str);
+
+                    if (pos != string::npos)
+                    {
+                        pos += len_str.length();
+                        size_t end_len = buf.find("\r", pos);
+                        int full_content_len = atoi(buf.substr(pos, end_len - pos).c_str());
+
+                        int body_already_read = buf.length() - (pos_end_head + 4);
+                        client.set_content_len(full_content_len - body_already_read);
+                    }
+                    else
+                        client.set_content_len(0);
+                }
+            }
+            else
+                client.set_content_len(client.get_content_len() - count);
+
+			if (client.get_is_header_readed() && client.get_content_len() <= 0)
+			{
+				client.set_Response(process_request(client.get_Buffer(), client, config_parser));
+
+				client.set_is_header_readed(false);
+				client.set_content_len(0);
+				return;
+			}
+        }
 	}
 }
 

@@ -44,6 +44,26 @@ int Client::get_Socket(void) const
 	return (client_socket);
 }
 
+bool Client::get_is_header_readed(void)
+{
+	return (this->is_header_readed);
+}
+
+int Client::get_content_len(void)
+{
+	return (this->content_len);
+}
+
+void Client::set_is_header_readed(bool state)
+{
+	this->is_header_readed = state;
+}
+
+void Client::set_content_len(int len)
+{
+	this->content_len = len;
+}
+
 const Server *Client::get_Server(void) const
 {
 	return (server);
