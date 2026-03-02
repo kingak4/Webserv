@@ -401,7 +401,6 @@ string set_unique_filename(string &actual_filename, map<string, string> &headers
 		if (serv->get_port() == port)
 		{
 			stringstream index;
-			index << serv->get_files_count();
 			server_filename = "server-upload-" + get_Current_Date_RFC(false) + extention;
 			serv->create_uploaded_file_pair(server_filename, actual_filename);
 			break ;

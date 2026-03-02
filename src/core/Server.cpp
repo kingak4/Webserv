@@ -85,7 +85,6 @@ void Server::create_uploaded_file_pair(string &server_file_name, string &user_fi
 		Console::message("Could not open database file for writing!", ERROR, false);
         return;
     }
-	this->epoll_manager.increment_all_servers_file_count();
 	sync_database_to_disk();
 }
 
@@ -120,27 +119,12 @@ void Server::read_files_database(void)
             string userFile = line.substr(p3 + 1);
 
 			if (this->port == nbr_port && this->host_name == host)
-			{
 				this->files_uploaded[serverFile] = userFile;
-				this->epoll_manager.increment_all_servers_file_count();
-			}	
         }
 	}
 	db.close();
     Console::message("Database loaded successfully.", INFO, false);
 }
-
-
-int Server::get_files_count(void)
-{
-	return (this->files_count);
-}
-
-void Server::increment_files_count(void)
-{
-	this->files_count++;
-}
-
 
 //Memeber functions
 void Server::server_init(void)
@@ -150,7 +134,6 @@ void Server::server_init(void)
     serverAddress.sin_port = htons(port);
     serverAddress.sin_addr.s_addr = INADDR_ANY;
 
-	this->files_count = 0;
 	read_files_database();
 
     this->socket_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);

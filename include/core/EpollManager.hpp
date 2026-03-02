@@ -44,7 +44,6 @@ class EpollManager
 		void init_Epoll(vector<ServerData> &config_splitted);
 		void epoll_Loop(ConfigParser &config_parser);
 		int get_Epoll_Fd(void);
-		void increment_all_servers_file_count(void);
 		const struct epoll_event &get_Epoll_Event(void) const;
 		const map<int, Server *> &get_Servers_Running(void) const;
 };

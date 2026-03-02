@@ -108,14 +108,6 @@ const map<int, Server*> &EpollManager::get_Servers_Running(void) const
 	return (this->servers_running);
 }
 
-void EpollManager::increment_all_servers_file_count(void)
-{
-	for (map<int, Server *>::iterator it = this->servers_running.begin(); it != this->servers_running.end(); ++it)
-	{
-		it->second->increment_files_count();
-	}
-}
-
 void EpollManager::init_Epoll(vector<ServerData> &config_splitted)
 {
 	this->epoll_fd = epoll_create(10);
@@ -247,16 +239,12 @@ string find_requested_server(Request& request, ConfigParser& config_parser, Clie
 
     if (server_block && route_block)
     {
-		// cout << "server_name: " << server_block->get_server_name() << endl;
-		// cout << "server_block: " << server_block->get_root_dir() << endl;
-		// cout << "route_block: " << route_block->get_route_name() << route_block->get_url() << endl;
         response = route_block->form_response();
         if (response == "")
         {
             cout << "response is NULL" << endl;
         }
 		cout << endl;
-        //cout << response << endl;
 
         delete server_block;
         delete route_block;
@@ -289,21 +277,11 @@ string process_request(const string &request_str, Client &client, ConfigParser &
 
 	stringstream ss;
 	ss << "Request recived: " << parser.get_Method() << " " << parser.get_Path() << " on port " << client.get_Server()->get_port() << ".";
-	Console::message(ss.str(), type, true);
-	// if (parser.is_Valid())
-	// 	return "HTTP/1.1 200 OK\r\n\r\nHello World";
-	// else
-	// 	return "HTTP/1.1 400 OK\r\n\r\n";
+	Console::message(ss.str(), type, false);
 	Request request;
     request.buildFromParser(parser);
 
     return find_requested_server(request, config_parser, client);
-
-	// cout << "Request recived: " << parser.get_Method() << " " << parser.get_Path() << " on port " << client.get_Server()->get_port() << "." << endl;
-	// if (parser.is_Valid())
-	// 	return "HTTP/1.1 200 OK\r\n\r\nHello World";
-	// else
-	// 	return "HTTP/1.1 400 OK\r\n\r\n";
 }
 
 void handle_Read(struct epoll_event &event, Client &client, ConfigParser &config_parser)
