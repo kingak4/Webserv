@@ -291,17 +291,21 @@
                     return;
                 }
 
-                files.forEach((filename, index) => {
+                files.forEach((fileObj, index) => {
                     const artItem = document.createElement('div');
                     artItem.className = 'art-item uploaded-art';
-                    artItem.dataset.serverid = filename; // The unique name on server
                     
-                    // Path to where your server serves the uploaded files
-                    artItem.style.backgroundImage = `url('/uploads/${filename}')`;
+                    // We store the SERVER NAME in the dataset for the DELETE request
+                    artItem.dataset.serverid = fileObj.serverID; 
+                    
+                    // Use the SERVER NAME to fetch the actual image bytes
+                    artItem.style.backgroundImage = `url('/uploads/${fileObj.serverID}')`;
                     
                     const info = document.createElement('div');
                     info.className = 'art-info';
-                    info.innerText = `${index + 1}. ${filename}`;
+                    
+                    // We show the USER NAME (e.g. "zoom_in.png") to the human
+                    info.innerText = `${index + 1}. ${fileObj.userLabel}`;
                     
                     artItem.appendChild(info);
                     gallery.appendChild(artItem);

@@ -1,10 +1,12 @@
 #include "../../include/core/Server.hpp"
 #include "../../include/core/EpollManager.hpp"
+#include <fstream>
+#include <ios>
 #include <string>
 using namespace std;
 
 //Constructors
-Server::Server(int port, EpollManager &manager) :  port(port), epoll_manager(manager)
+Server::Server(int port, string &host, EpollManager &manager) :  port(port), host_name(host), epoll_manager(manager)
 {  
 	this->server_init();
 }
@@ -40,19 +42,105 @@ string &Server::get_uploaded_file_name(string &user_file_name)
 	return this->files_uploaded.at(user_file_name);
 }
 
+void Server::sync_database_to_disk(void) 
+{
+    std::ofstream db("files.db");
+
+    if (!db.is_open()) {
+        Console::message("Failed to open DB for sync!", ERROR, false);
+        return;
+    }
+
+    std::map<std::string, std::string>::iterator it;
+    for (it = this->files_uploaded.begin(); it != this->files_uploaded.end(); ++it) 
+	{
+        db << this->port << "|"
+           << this->host_name << "|"
+           << it->first << "|"
+           << it->second << "\n";
+    }
+
+    db.close();
+}
+
 bool Server::remove_uploaded_file_name(string &user_file_name)
 {
 	map<string, string>::iterator name_iterator = this->files_uploaded.find(user_file_name);
 	if (name_iterator == this->files_uploaded.end())
 		return (false);
 	this->files_uploaded.erase(name_iterator);
-	return (true);
+
+	sync_database_to_disk();
+	return true;
 }
 
 void Server::create_uploaded_file_pair(string &server_file_name, string &user_file_name)
 {
 	this->files_uploaded[server_file_name] = user_file_name;
+
+    std::ofstream db("files.db", std::ios::app);
+    
+    if (!db.is_open()) 
+	{
+		Console::message("Could not open database file for writing!", ERROR, false);
+        return;
+    }
+	this->epoll_manager.increment_all_servers_file_count();
+	sync_database_to_disk();
 }
+
+void Server::read_files_database(void)
+{
+    ifstream db("files.db");
+    
+    if (!db.is_open()) 
+	{
+		Console::message("Could not open database file for reading, creating new.", NOTICE, false);
+		ofstream db_new("files.db", ios_base::app);
+        return;
+    }
+	string line;
+	while (getline(db, line))
+	{
+		if (line.empty()) 
+			continue;
+		size_t p1 = line.find('|');
+        size_t p2 = line.find('|', p1 + 1);
+        size_t p3 = line.find('|', p2 + 1);
+
+		if (p1 != std::string::npos && p2 != std::string::npos && p3 != std::string::npos)
+        {
+			int nbr_port;
+            stringstream str_port;
+		    str_port << line.substr(0, p1);
+			str_port >> nbr_port;
+
+            string host = line.substr(p1 + 1, p2 - p1 - 1);
+            string serverFile = line.substr(p2 + 1, p3 - p2 - 1);
+            string userFile = line.substr(p3 + 1);
+
+			if (this->port == nbr_port && this->host_name == host)
+			{
+				this->files_uploaded[serverFile] = userFile;
+				this->epoll_manager.increment_all_servers_file_count();
+			}	
+        }
+	}
+	db.close();
+    Console::message("Database loaded successfully.", INFO, false);
+}
+
+
+int Server::get_files_count(void)
+{
+	return (this->files_count);
+}
+
+void Server::increment_files_count(void)
+{
+	this->files_count++;
+}
+
 
 //Memeber functions
 void Server::server_init(void)
@@ -61,6 +149,9 @@ void Server::server_init(void)
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_port = htons(port);
     serverAddress.sin_addr.s_addr = INADDR_ANY;
+
+	this->files_count = 0;
+	read_files_database();
 
     this->socket_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 

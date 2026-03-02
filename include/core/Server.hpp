@@ -25,10 +25,12 @@ class Server
 	private:
 		int port;
 		int socket_fd;
+		string host_name;
+		int files_count;
 		map<string, string> files_uploaded;
 		EpollManager &epoll_manager;
 	public:
-		Server(int port, EpollManager &manager);
+		Server(int port, string &host, EpollManager &manager);
 		Server(const Server &other);
 		Server &operator=(const Server &other);
 		~Server(void);
@@ -37,6 +39,10 @@ class Server
 		string &get_uploaded_file_name(string &user_file_name);
 		bool remove_uploaded_file_name(string &user_file_name);
 		void create_uploaded_file_pair(string &server_file_name, string &user_file_name);
+		void read_files_database(void);
+		void sync_database_to_disk(void);
+		int get_files_count(void);
+		void increment_files_count(void);
 		EpollManager &get_Epoll_Manager(void) const;
 		void server_init(void);
 };

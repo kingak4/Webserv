@@ -11,28 +11,26 @@ string get_Current_Date_RFC(bool is_short)
 	struct tm *time_struct = gmtime(&current_time);
 	if (!time_struct)
 		return (std::string());
-	const char *days[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 	const char *months[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
 							  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 	char buffer[100];
 	if (is_short)
 	{
-		sprintf(buffer, "%02d %s %04d, %02d:%02d:%02d GMT",
+		sprintf(buffer, "%02d %s %04d, %02d:%02d:%02d GMT+1",
 				time_struct->tm_mday,
 				months[time_struct->tm_mon],
 				time_struct->tm_year + 1900,
-				time_struct->tm_hour,
+				time_struct->tm_hour + 1,
 				time_struct->tm_min,
 				time_struct->tm_sec);
 	}
 	else
 	{
-		sprintf(buffer, "%s, %02d %s %04d %02d:%02d:%02d GMT",
-				days[time_struct->tm_wday],
+		sprintf(buffer, "%02d%02d%04d_%02d%02d%02d",
 				time_struct->tm_mday,
-				months[time_struct->tm_mon],
+				time_struct->tm_mon + 1,
 				time_struct->tm_year + 1900,
-				time_struct->tm_hour,
+				time_struct->tm_hour + 1,
 				time_struct->tm_min,
 				time_struct->tm_sec);
 	}
@@ -110,6 +108,14 @@ const map<int, Server*> &EpollManager::get_Servers_Running(void) const
 	return (this->servers_running);
 }
 
+void EpollManager::increment_all_servers_file_count(void)
+{
+	for (map<int, Server *>::iterator it = this->servers_running.begin(); it != this->servers_running.end(); ++it)
+	{
+		it->second->increment_files_count();
+	}
+}
+
 void EpollManager::init_Epoll(vector<ServerData> &config_splitted)
 {
 	this->epoll_fd = epoll_create(10);
@@ -117,7 +123,7 @@ void EpollManager::init_Epoll(vector<ServerData> &config_splitted)
 
 	for (vector<ServerData>::iterator it = config_splitted.begin(); it != config_splitted.end(); ++it)
 	{
-		Server *server = new Server(it->port, *this);		
+		Server *server = new Server(it->port, it->host, *this);		
 		int socket_fd = server->get_socket();
 
 		this->event.data.fd = socket_fd;

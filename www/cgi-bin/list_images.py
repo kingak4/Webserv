@@ -1,31 +1,45 @@
 #!/usr/bin/env python3
 import os
 import json
+import sys
 
-# 1. Header
+# 1. Mandatory CGI Header
 # print("Content-Type: application/json\r\n\r\n", end="")
 
-# 2. Robust Pathing
-# __file__ is the location of list_images.py
-# os.path.dirname(__file__) is the cgi-bin folder
-# Then we go up one level to the project root, then into uploads
+# 2. Get environment variables with defaults
+# Note: If C++ doesn't pass these, they fallback to 8080/localhost
+current_port = os.environ.get('SERVER_PORT', '8080')
+current_host = os.environ.get('HTTP_HOST', 'localhost')
+
+# 3. Robust Pathing: Find config/files.db relative to this script
+# os.path.realpath(__file__) gets the absolute path to this .py file
 script_dir = os.path.dirname(os.path.realpath(__file__))
-upload_dir = os.path.join(script_dir, "..", "uploads")
+# If your structure is: project/cgi-bin/list_images.py and project/config/files.db
+db_path = os.path.join(script_dir, "../../", "files.db")
 
 result = []
 
 try:
-    if os.path.exists(upload_dir):
-        # List files and filter for images
-        files = os.listdir(upload_dir)
-        valid_exts = ('.png', '.jpg', '.jpeg', '.gif', '.webp')
-        result = [f for f in files if f.lower().endswith(valid_exts)]
-        
-        # Sort so they appear in a consistent order
-        result.sort()
-    
-    print(json.dumps(result))
+    if os.path.exists(db_path):
+        with open(db_path, "r") as f:
+            for line in f:
+                line = line.strip()
+                if not line: continue
+                
+                parts = line.split("|")
+                if len(parts) == 4:
+                    port, host, server_name, user_name = parts
+                    
+                    # STRICT FILTERING
+                    if str(port) == str(current_port) and host == current_host:
+                        result.append({
+                            "serverID": server_name,
+                            "userLabel": user_name
+                        })
+        print(json.dumps(result))
+    else:
+        # DB File not found - return error info inside the list for debugging
+        print(json.dumps([{"error": "DB file not found", "path_tried": db_path}]))
 
 except Exception as e:
-    # If this prints, your JS console will show the error string
-    print(json.dumps([f"Error: {str(e)}", f"Looked in: {upload_dir}"]))
+    print(json.dumps([{"error": str(e)}]))
