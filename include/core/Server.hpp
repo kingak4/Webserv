@@ -25,6 +25,7 @@ class Server
 	private:
 		int port;
 		int socket_fd;
+		map<string, string> files_uploaded;
 		EpollManager &epoll_manager;
 	public:
 		Server(int port, EpollManager &manager);
@@ -33,6 +34,9 @@ class Server
 		~Server(void);
 		int get_port(void) const;
 		int get_socket(void) const;
+		string &get_uploaded_file_name(string &user_file_name);
+		bool remove_uploaded_file_name(string &user_file_name);
+		void create_uploaded_file_pair(string &server_file_name, string &user_file_name);
 		EpollManager &get_Epoll_Manager(void) const;
 		void server_init(void);
 };

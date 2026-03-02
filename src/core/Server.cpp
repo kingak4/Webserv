@@ -1,5 +1,6 @@
 #include "../../include/core/Server.hpp"
 #include "../../include/core/EpollManager.hpp"
+#include <string>
 using namespace std;
 
 //Constructors
@@ -33,6 +34,25 @@ Server::Server(const Server &other) : port(other.get_port()), epoll_manager(othe
 int Server::get_port(void) const {return port;}
 int Server::get_socket(void) const {return socket_fd;}
 EpollManager &Server::get_Epoll_Manager(void) const {return epoll_manager;}
+
+string &Server::get_uploaded_file_name(string &user_file_name)
+{
+	return this->files_uploaded.at(user_file_name);
+}
+
+bool Server::remove_uploaded_file_name(string &user_file_name)
+{
+	map<string, string>::iterator name_iterator = this->files_uploaded.find(user_file_name);
+	if (name_iterator == this->files_uploaded.end())
+		return (false);
+	this->files_uploaded.erase(name_iterator);
+	return (true);
+}
+
+void Server::create_uploaded_file_pair(string &server_file_name, string &user_file_name)
+{
+	this->files_uploaded[server_file_name] = user_file_name;
+}
 
 //Memeber functions
 void Server::server_init(void)

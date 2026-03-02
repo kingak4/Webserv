@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "../../include/config/Route.hpp"
+#include <string>
 
 Route::Route(Location& loc, Request& request, Config& server_block) : server(server_block), request(request)
 {
@@ -387,6 +388,37 @@ string Route::handle_delete()
     return (resp.str());
 }
 
+string set_unique_filename(string &actual_filename, map<string, string> &headers)
+{
+
+	string client_str = headers.find("host")->second.c_str();
+	int port_index = client_str.find(":") + 1;
+	stringstream ss;
+	int port;
+	ss << client_str.substr(port_index, client_str.length());
+	ss >> port;
+
+	map<int, Server *> servers = g_epoll_manager->get_Servers_Running();
+
+	int period_index = actual_filename.find(".");
+	string extention = actual_filename.substr(period_index, actual_filename.length());
+	int new_file_index = servers.size();
+	stringstream file_index_ss;
+	file_index_ss << new_file_index;
+	string server_filename = "server-upload-" + file_index_ss.str() + extention;
+
+	for (map<int, Server *>::iterator it = servers.begin(); it != servers.end(); ++it)
+	{
+		Server *serv = it->second;
+		if (serv->get_port() == port)
+		{
+			serv->create_uploaded_file_pair(server_filename, actual_filename);
+			break ;
+		}
+	}
+	return server_filename;	
+}
+
 string Route::handle_post()
 {
     string body = request.get_Body();
@@ -409,13 +441,17 @@ string Route::handle_post()
         if (stat(upload_dir.c_str(), &st) != 0)
             mkdir(upload_dir.c_str(), 0777);
         // string file_path = upload_dir + "/post_body.txt";
+
         string filename;
+
         size_t name_start = body.find("filename=") + 10; // make  invidual file name for files in upolads 
         size_t name_end = body.find("\"", name_start);
         if (name_start != string::npos && name_end != string::npos)
         filename = body.substr(name_start, name_end - name_start);
+
+		string server_filename = set_unique_filename(filename, headers);
         
-        string file_path = upload_dir + "/" + filename;
+        string file_path = upload_dir + "/" + server_filename;
         ofstream file(file_path.c_str(), ios::binary);
         if (!file.is_open())
             return error_response("500");

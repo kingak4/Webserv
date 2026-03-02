@@ -2,6 +2,8 @@
 
 // sig_atomic_t: an integer type that can be accessed atomically
 volatile sig_atomic_t g_server_running = 1;
+EpollManager *g_epoll_manager = NULL;
+
 
 string get_Current_Date_RFC(bool is_short)
 {

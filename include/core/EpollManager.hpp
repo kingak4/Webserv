@@ -48,4 +48,5 @@ class EpollManager
 		const map<int, Server *> &get_Servers_Running(void) const;
 };
 
+extern EpollManager *g_epoll_manager;;
 #endif 

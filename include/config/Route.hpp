@@ -21,10 +21,12 @@
 #include <map>
 #include <vector>
 #include <sys/stat.h>
+#include <cstdlib>
 #include "ConfigParser.hpp"
 #include "Config.hpp"
 #include "../http/Request.hpp"
 #include "../cgi/CgiHandler.hpp"
+#include "../core/EpollManager.hpp"
 
 using namespace std;
 
