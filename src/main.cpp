@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 	catch (runtime_error &e)
 	{
 		stringstream ss;
-		ss << "ERROR: " << e.what();
+		ss << e.what();
 		Console::message(ss.str(), ERROR, true);
 		ss.clear();
 		

@@ -6,7 +6,7 @@
 /*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:23 by alraltse          #+#    #+#             */
-/*   Updated: 2026/03/03 15:21:16 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/03/03 15:42:32 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,9 +119,11 @@ void ConfigParser::parse_route_block(string line, Location& loc)
 void ConfigParser::parse_config_file(string& filename)
 {
     string abs_path_to_filename;
+    string valid_path;
 
     abs_path_to_filename = get_absolute_path_to_dict(filename);
-    ifstream config(abs_path_to_filename.c_str());
+    valid_path = file_is_config(abs_path_to_filename);
+    ifstream config(valid_path.c_str());
     if (!config.is_open())
     {
         cout << "Error while opening the file" << endl;
@@ -203,23 +205,20 @@ string ConfigParser::trim_str(string temp_str)
     return temp_str.substr(start_idx, end_idx - start_idx + 1);    
 }
 
+string ConfigParser::file_is_config(string path) {
+    if (path.find(".conf") != string::npos)
+        return path; 
+
+    throw runtime_error("file '" + path + "' is not a config file.");
+}
+
 string ConfigParser::get_absolute_path_to_dict(string root) {
     char abs_path[PATH_MAX];
 
     if (realpath(root.c_str(), abs_path) != NULL)
     {
         string root_path(abs_path);
-
-        if (root_path.find("cpp") != string::npos 
-            || root_path.find("hpp") != string::npos
-            || root_path.find("html") != string::npos
-            || root_path.find("py") != string::npos
-            || root_path.find("db") != string::npos
-            || root_path.find("png") != string::npos
-            || root_path.find("md") != string::npos)
-            throw runtime_error("path '" + root + "' is not a config file");
-        else
-            return root_path;
+        return root_path; 
     }
 
     throw runtime_error("realpath failed for '" + root + "': " + strerror(errno));
