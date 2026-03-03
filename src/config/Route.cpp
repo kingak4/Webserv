@@ -207,8 +207,7 @@ string Route::find_abs_path(string file)
         string file_abs_path(abs_path);
         return file_abs_path;
     }
-    cout << "Path to the error file not found" << endl;
-    return NULL;        
+    throw runtime_error("realpath failed for '" + file + "': " + strerror(errno));      
 }
 
 string Route::error_response(string error)
@@ -224,7 +223,7 @@ string Route::error_response(string error)
     if (!file.is_open())
     {
 		Console::message("Coudn't open a file", ERROR, false);
-        return NULL;   
+        return "";   
     }
 
     ostringstream buffer;
@@ -546,6 +545,8 @@ string Route::form_response()
             {
                 CgiHandler cgi(*this, request);
                 cgi_output = cgi.run();
+                if (cgi_output == "404")
+                    return error_response("404");
                 return cgi.build_cgi_response(cgi_output);    
             }
             else
@@ -555,6 +556,8 @@ string Route::form_response()
             {
                 CgiHandler cgi(*this, request);
                 cgi_output = cgi.run();
+                if (cgi_output == "404")
+                    return error_response("404");
                 return cgi.build_cgi_response(cgi_output);   
             }
             else

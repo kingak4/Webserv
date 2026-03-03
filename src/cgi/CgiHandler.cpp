@@ -89,7 +89,7 @@ string CgiHandler::run()
 
     file_exist = does_file_exist();
     if (!file_exist)
-        return route.error_response("404");
+        return "404";
 
     if (request.get_Method() == "POST")
         body = request.get_Body();

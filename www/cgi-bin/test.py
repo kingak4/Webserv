@@ -5,8 +5,8 @@ from urllib.parse import parse_qs
 
 method = os.environ.get("REQUEST_METHOD", "GET")
 user_name = "Guest"
-form = {}
 age = 0
+form = {}
 
 if method.upper() == "GET":
     query_string = os.environ.get("QUERY_STRING", "")
@@ -20,8 +20,8 @@ elif method.upper() == "POST":
     # print(form)
     
 if "name" in form:
-    user_name = form.get("name")[0]
-    age = form.get("age")[0]
+    user_name = form.get("name", ["Guest"])[0]
+    age = form.get("age", [0])[0]
     # print('USER NAME', user_name)
 
 print("Content-Type: text/html")

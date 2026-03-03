@@ -6,7 +6,7 @@
 /*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:23 by alraltse          #+#    #+#             */
-/*   Updated: 2026/03/03 12:16:52 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/03/03 12:51:57 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,12 +53,7 @@ void ConfigParser::parse_server_block(string line, ServerData& server)
                 ss >> server.client_max_body_size;
             }
             else if (server_keywords[i] == "root")
-            {
-                server.root_dir = get_absolute_path_to_dict(temp_line);
-                // if (!server.root_dir)
-                //     throw exception
-            }
-                
+                server.root_dir = get_absolute_path_to_dict(temp_line);     
             else if (server_keywords[i] == "error_page")
             {
                 lline = parse_line(line);
