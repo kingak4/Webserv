@@ -6,7 +6,7 @@
 /*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:30 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/20 12:23:29 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/03/03 12:03:29 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,8 +92,7 @@ bool Route::is_cgi()
 FsType Route::get_filesystem_type()
 {
     struct stat buffer;
-    
-    // cout << "filesystem_path: " << filesystem_path << endl;
+
     if (stat(filesystem_path.c_str(), &buffer) != 0)
         return FS_NOT_FOUND;
     
@@ -209,8 +208,7 @@ string Route::find_abs_path(string file)
         string file_abs_path(abs_path);
         return file_abs_path;
     }
-    cout << "Path to the error file not found" << endl;
-    return NULL;        
+    throw runtime_error("realpath failed for '" + file + "': " + strerror(errno));      
 }
 
 string Route::error_response(string error)
@@ -226,7 +224,7 @@ string Route::error_response(string error)
     if (!file.is_open())
     {
 		Console::message("Coudn't open a file", ERROR, false);
-        return NULL;   
+        return "";   
     }
 
     ostringstream buffer;
@@ -242,7 +240,6 @@ string Route::error_response(string error)
 
     return response.str();
 }
-
 
 string get_Mime_Type(const string &path)
 {
@@ -555,25 +552,25 @@ string Route::form_response()
     switch(filesystem_status)
     {
         case FS_NOT_FOUND:
-            // cout << "FS_NOT_FOUND" << endl;
             return error_response("404");
         case FS_IS_FILE:
-            // cout << "FS_IS_FILE" << endl;
             if (is_cgi())
             {
                 CgiHandler cgi(*this, request);
                 cgi_output = cgi.run();
+                if (cgi_output == "404")
+                    return error_response("404");
                 return cgi.build_cgi_response(cgi_output);    
             }
             else
                 return serve_static_file();
         case FS_IS_DIR:
-            // cout << "FS_IS_DIR" << endl;
             if (is_cgi())
             {
-                // cout << "IS_CGI" << endl;
                 CgiHandler cgi(*this, request);
                 cgi_output = cgi.run();
+                if (cgi_output == "404")
+                    return error_response("404");
                 return cgi.build_cgi_response(cgi_output);   
             }
             else

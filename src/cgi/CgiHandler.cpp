@@ -1,5 +1,5 @@
 #include "../../include/cgi/CgiHandler.hpp"
-#include <sstream>      // for ostringstream
+#include <sstream>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -12,6 +12,10 @@ CgiHandler::CgiHandler(Route& route, Request& request) : route(route), request(r
 
 CgiHandler::~CgiHandler() {}
 
+CgiHandler::CgiException::CgiException(const string& msg) : runtime_error(msg) {}
+
+CgiHandler::CgiException::~CgiException() throw() {}
+
 bool CgiHandler::does_file_exist()
 {
     struct stat st;
@@ -20,14 +24,14 @@ bool CgiHandler::does_file_exist()
     return false;
 }
 
-std::string CgiHandler::trim(const std::string& str)
+string CgiHandler::trim(const string& str)
 {
     size_t start = 0;
     size_t end = str.size();
     if (str.empty())
         return "";
 
-    end--; // last index
+    end--;
 
     while (start <= end && (str[start] == ' ' || str[start] == '\t' || str[start] == '\n'))
         ++start;
@@ -38,30 +42,30 @@ std::string CgiHandler::trim(const std::string& str)
     return str.substr(start, end - start + 1);
 }
 
-std::string CgiHandler::build_cgi_response(std::string& output)
+string CgiHandler::build_cgi_response(std::string& output)
 {
-    std::string headers;
-    std::string body = output;
+    string headers;
+    string body = output;
     size_t pos = output.find("\n\n");
-    if (pos != std::string::npos)
+    if (pos != string::npos)
     {
         headers = output.substr(0, pos);
         body = output.substr(pos + 2);
     }
 
-    std::string content_type = "text/html";
-    std::istringstream hs(headers);
-    std::string line;
+    string content_type = "text/html";
+    istringstream hs(headers);
+    string line;
     while (getline(hs, line))
     {
-        if (line.find("Content-Type:") != std::string::npos)
+        if (line.find("Content-Type:") != string::npos)
         {
             content_type = trim(line.substr(13));
             break;
         }
     }
 
-    std::ostringstream response;
+    ostringstream response;
     response << "HTTP/1.1 200 OK\r\n";
     response << "Content-Type: " << content_type << "\r\n";
     response << "Content-Length: " << body.size() << "\r\n";
@@ -72,30 +76,30 @@ std::string CgiHandler::build_cgi_response(std::string& output)
     return response.str();
 }
 
-std::string CgiHandler::run()
+string CgiHandler::run()
 {
     bool file_exist;
     pid_t pid;
     int in_pipe[2];
     int out_pipe[2];
-    char *argv[4];
-    std::vector<std::string> envp_str;
-    std::vector<char*> envp;
-    std::string body;
+    char *argv[2];
+    vector<std::string> envp_str;
+    vector<char*> envp;
+    string body;
 
     file_exist = does_file_exist();
     if (!file_exist)
-        return "FILE DOESN'T EXIST";
+        return "404";
 
     if (request.get_Method() == "POST")
         body = request.get_Body();
 
     if (pipe(in_pipe) == -1 || pipe(out_pipe) == -1)
-        return "Error: pipe creation failed.";
+        return "500";
 
     pid = fork();
     if (pid < 0)
-        return "Error: fork failed";
+        return "500";
 
     if (pid == 0)
     {
@@ -105,26 +109,23 @@ std::string CgiHandler::run()
         close(in_pipe[1]);
         close(out_pipe[0]);
 
-        argv[0] = strdup("/usr/bin/env");
-        argv[1] = strdup("python3");
-        argv[2] = strdup(route.get_filesystem_path().c_str());
-        argv[3] = NULL;
+        argv[0] = strdup(route.get_filesystem_path().c_str());
+        argv[1] = NULL;
 
         envp_str.push_back("REQUEST_METHOD=" + request.get_Method());
         envp_str.push_back("SCRIPT_NAME=" + request.get_Path());
         envp_str.push_back("SERVER_PROTOCOL=" + request.get_Version());
         envp_str.push_back("GATEWAY_INTERFACE=CGI/1.1");
 
-        if (request.get_Method() == "GET")
-            envp_str.push_back("QUERY_STRING=" + route.get_request_query());
+        envp_str.push_back("QUERY_STRING=" + route.get_request_query());
 
         if (request.get_Method() == "POST")
         {
-            std::ostringstream oss;
+            ostringstream oss;
             oss << body.size();
             envp_str.push_back("CONTENT_LENGTH=" + oss.str());
 
-            std::string content_type = "application/x-www-form-urlencoded";
+            string content_type = "application/x-www-form-urlencoded";
             if (request.get_Headers().count("Content-Type"))
                 content_type = request.get_Headers()["Content-Type"];
             envp_str.push_back("CONTENT_TYPE=" + content_type);
@@ -164,12 +165,11 @@ std::string CgiHandler::run()
 
         char buffer[4096];
         size_t bytes;
-        std::string output;
+        string output;
         while ((bytes = read(out_pipe[0], buffer, sizeof(buffer))) > 0)
             output.append(buffer, bytes);
 
         close(out_pipe[0]);
-        std::cout << "output: " << output << std::endl;
         return output;
     }
 }

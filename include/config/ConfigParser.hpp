@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigParser.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
+/*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:57 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/10 20:04:31 by apple            ###   ########.fr       */
+/*   Updated: 2026/03/03 15:39:37 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include <vector>
 #include <cstdlib>
 #include <limits.h>
+#include <string.h>
 
 using namespace std;
 
@@ -60,6 +61,7 @@ class ConfigParser
         void parse_route_block(string line, Location& loc);
         void parse_config_file(string& filename);
         string get_absolute_path_to_dict(string root);
+        string file_is_config(string path);
 
         const vector<ServerData>& get_config_servers() const;
 };

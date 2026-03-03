@@ -10,7 +10,6 @@ int main(int argc, char **argv)
 	try
 	{
 		Console::message("Server initialization", NOTICE, false);
-		//TODO Config parser needs to throw an exceptions on errors
 		ConfigParser configParser;
 
 		string default_config_path = "config/default.conf";
@@ -39,7 +38,7 @@ int main(int argc, char **argv)
 	catch (runtime_error &e)
 	{
 		stringstream ss;
-		ss << "ERROR: " << e.what();
+		ss << e.what();
 		Console::message(ss.str(), ERROR, true);
 		ss.clear();
 		
