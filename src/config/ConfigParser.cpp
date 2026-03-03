@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigParser.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: apple <apple@student.42.fr>                +#+  +:+       +#+        */
+/*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:23 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/20 16:34:57 by korzecho         ###   ########.fr       */
+/*   Updated: 2026/03/03 11:31:34 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,7 +127,7 @@ void ConfigParser::parse_config_file(string& filename)
 
     abs_path_to_filename = get_absolute_path_to_dict(filename);
     ifstream config(abs_path_to_filename.c_str());
-    if (!config.is_open()) // handle inside try/catch ?
+    if (!config.is_open())
     {
         cout << "Error while opening the file" << endl;
         return ;
@@ -167,7 +167,6 @@ void ConfigParser::parse_config_file(string& filename)
             continue;
         }
 
-        // END LOCATION BLOCK
         if (line.find("}") != string::npos && in_location)
         {
             current_server.locations.push_back(current_location);
@@ -175,7 +174,6 @@ void ConfigParser::parse_config_file(string& filename)
             continue;
         }
 
-        // END SERVER BLOCK
         if (line.find("}") != string::npos && in_server)
         {
             config_servers.push_back(current_server);
@@ -210,7 +208,6 @@ string ConfigParser::trim_str(string temp_str)
     return temp_str.substr(start_idx, end_idx - start_idx + 1);    
 }
 
-// TODO: CHECK IF ROOT IS DIRECTORY FIRST
 string ConfigParser::get_absolute_path_to_dict(string root) {
     char abs_path[PATH_MAX];
 
@@ -219,8 +216,8 @@ string ConfigParser::get_absolute_path_to_dict(string root) {
         string root_path(abs_path);
         return root_path;
     }
-    cout << "path to the root not found" << endl;
-    return NULL;
+
+    throw runtime_error("realpath failed for '" + root + "': " + strerror(errno));
 }
 
 const vector<ServerData>& ConfigParser::get_config_servers() const

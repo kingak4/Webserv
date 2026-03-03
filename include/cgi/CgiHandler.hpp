@@ -24,6 +24,13 @@ class CgiHandler
         CgiHandler(Route& route, Request& request);
         ~CgiHandler();
 
+        class CgiException : public runtime_error
+        {
+            public:
+                CgiException(const string& msg);
+                virtual ~CgiException() throw();
+        };
+
         bool does_file_exist();
         string build_cgi_response(string& output);
         string trim(const string& str);

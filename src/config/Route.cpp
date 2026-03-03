@@ -6,7 +6,7 @@
 /*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:30 by alraltse          #+#    #+#             */
-/*   Updated: 2026/02/20 12:23:29 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/03/03 12:03:29 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,8 +92,7 @@ bool Route::is_cgi()
 FsType Route::get_filesystem_type()
 {
     struct stat buffer;
-    
-    // cout << "filesystem_path: " << filesystem_path << endl;
+
     if (stat(filesystem_path.c_str(), &buffer) != 0)
         return FS_NOT_FOUND;
     
@@ -181,7 +180,6 @@ string Route::handle_autoindex()
     string index_path;
 
     index_path = filesystem_path + "/" + url;
-    // cout << "index_path: " << index_path << endl;
 
     if (autoindex == "off")
     {
@@ -192,7 +190,6 @@ string Route::handle_autoindex()
         }
         else
         {
-            // cout << "ERORR" << endl;
             return error_response("404");   
         }
     }
@@ -242,7 +239,6 @@ string Route::error_response(string error)
 
     return response.str();
 }
-
 
 string get_Mime_Type(const string &path)
 {
@@ -338,7 +334,7 @@ string Route::handle_delete()
     return headers.str();
 }
 
-string Route::handle_post() // handle POST method here, not in CGI
+string Route::handle_post()
 {
     cout << "Handle POST method here" << endl;
     return "Handle file uploads here";
@@ -380,10 +376,8 @@ string Route::form_response()
     switch(filesystem_status)
     {
         case FS_NOT_FOUND:
-            // cout << "FS_NOT_FOUND" << endl;
             return error_response("404");
         case FS_IS_FILE:
-            // cout << "FS_IS_FILE" << endl;
             if (is_cgi())
             {
                 CgiHandler cgi(*this, request);
@@ -393,10 +387,8 @@ string Route::form_response()
             else
                 return serve_static_file();
         case FS_IS_DIR:
-            // cout << "FS_IS_DIR" << endl;
             if (is_cgi())
             {
-                // cout << "IS_CGI" << endl;
                 CgiHandler cgi(*this, request);
                 cgi_output = cgi.run();
                 return cgi.build_cgi_response(cgi_output);   
