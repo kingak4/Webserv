@@ -4,8 +4,8 @@ int main(int argc, char **argv)
 {
 	signal(SIGINT, signal_handler);
 	// string config_path = argv[1];
-	EpollManager *epoll_manager = new EpollManager();
 	vector<ServerData> splitted_config;
+	g_epoll_manager = new EpollManager();
 
 	try
 	{
@@ -30,10 +30,10 @@ int main(int argc, char **argv)
 		Console::message("Config correct", SUCCES, false);
 		cout << endl;
 
-		epoll_manager->init_Epoll(splitted_config);
+		g_epoll_manager->init_Epoll(splitted_config);
 		Console::message("Epoll initialization succesful.", INFO, false);
 		Console::message("Server initialized succesfully.", SUCCES, true);
-		epoll_manager->epoll_Loop(configParser);	
+		g_epoll_manager->epoll_Loop(configParser);	
 	}
 	catch (runtime_error &e)
 	{
@@ -42,13 +42,13 @@ int main(int argc, char **argv)
 		Console::message(ss.str(), ERROR, true);
 		ss.clear();
 		
-		ss << "Server shutdown. Disabling " << epoll_manager->get_Servers_Running().size() << " ports.";
+		ss << "Server shutdown. Disabling " << g_epoll_manager->get_Servers_Running().size() << " ports.";
 		Console::message(ss.str(), ERROR, false);
 	}
 
 	try
 	{
-		delete epoll_manager;
+		delete g_epoll_manager;
 		Console::message("Server disabled cleanly. No issues detected.", SUCCES, true);
 	}
 	catch (runtime_error &e)

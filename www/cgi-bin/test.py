@@ -6,7 +6,7 @@ from urllib.parse import parse_qs
 method = os.environ.get("REQUEST_METHOD", "GET")
 user_name = "Guest"
 form = {}
-age = {}
+age = 0
 
 if method.upper() == "GET":
     query_string = os.environ.get("QUERY_STRING", "")

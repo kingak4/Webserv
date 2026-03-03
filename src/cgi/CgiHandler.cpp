@@ -82,7 +82,7 @@ string CgiHandler::run()
     pid_t pid;
     int in_pipe[2];
     int out_pipe[2];
-    char *argv[4];
+    char *argv[2];
     vector<std::string> envp_str;
     vector<char*> envp;
     string body;
@@ -109,10 +109,8 @@ string CgiHandler::run()
         close(in_pipe[1]);
         close(out_pipe[0]);
 
-        argv[0] = strdup("/usr/bin/env");
-        argv[1] = strdup("python3");
-        argv[2] = strdup(route.get_filesystem_path().c_str());
-        argv[3] = NULL;
+        argv[0] = strdup(route.get_filesystem_path().c_str());
+        argv[1] = NULL;
 
         envp_str.push_back("REQUEST_METHOD=" + request.get_Method());
         envp_str.push_back("SCRIPT_NAME=" + request.get_Path());
@@ -172,7 +170,6 @@ string CgiHandler::run()
             output.append(buffer, bytes);
 
         close(out_pipe[0]);
-        cout << "output: " << output << std::endl;
         return output;
     }
 }

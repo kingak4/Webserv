@@ -54,10 +54,56 @@ This project demonstrates low-level network programming, event-driven architectu
 ---
 
 ## 🛠️ Instructions
+### Compilation
 
+The project is written in **C++ 98**. Use the provided `Makefile` to compile:
 
+```bash
+make
+```
+
+Available rules:
+- `make clean` – remove object files
+- `make fclean` – remove object and executable files
+- `make re` – recompile everything
+
+### Execution
+
+```bash
+./webserv [path_to_configuration_file]
+```
+
+> If no configuration file is provided, the server will attempt to load `default.conf` from the project root.
+
+### Testing
+
+- **Web Browser:** `http://localhost:8080` (or port defined in config)
+- **Curl:**
+```bash
+curl -v http://localhost:8080
+```
+- **Telnet:** manually simulate raw HTTP requests
 
 ---
+
+## ⚙️ Configuration File
+
+The configuration file defines server behavior and is inspired by NGINX. It allows hosting multiple virtual servers and defining rules per route.
+
+### Configurable options:
+- **Interfaces & Ports:** define IP addresses and ports
+- **Client Limits:** `client_max_body_size` for uploads
+- **Error Handling:** custom HTML pages for HTTP errors (404, 500, etc.)
+- **Location Blocks:**
+  - Allowed HTTP methods
+  - Root & index files
+  - Autoindex (directory listing)
+  - HTTP redirects (301/302)
+  - CGI script execution based on file extension
+  - Upload directory
+
+---
+
 
 ## 📚 Resources
 ### Documentation & Articles
