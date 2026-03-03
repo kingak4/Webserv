@@ -20,6 +20,7 @@ Route::Route(Location& loc, Request& request, Config& server_block) : server(ser
     vector<string> method = loc.allowed_methods;
     allowed_methods = loc.allowed_methods;
     autoindex = loc.autoindex;
+	redir_code = loc.redir_code;
 
     request_method = request.get_Method();
     request_full_path = request.get_Path();
@@ -522,6 +523,18 @@ string Route::form_response()
 {
     FsType filesystem_status;
     string cgi_output;
+	
+	if (redir_code == 301 || redir_code == 302)
+	{
+		stringstream ss;
+
+		ss << "HTTP/1.1 " << redir_code << endl
+		<< "Location: " << url << endl
+		<< "Conten-Length: 0" << endl
+		<< "Connection: close";
+
+		return ss.str();
+	}
 
     if (!is_valid_request())
     {
