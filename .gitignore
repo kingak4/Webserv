@@ -1,5 +1,8 @@
+webserv
 .DS_Store
 .vscode
 *.o
 *.swp
 .nfs*
+*.db
+**/uploads/*

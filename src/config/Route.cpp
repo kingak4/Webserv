@@ -220,7 +220,7 @@ string Route::error_response(string error)
 
     error_file_abs_path = find_abs_path("www/errors/" + error + ".html");
 
-	Console::message("DELETE fail, error code: " + error, ERROR, false);
+	Console::message("error code: " + error, WARNING, false);
     
     ifstream file(error_file_abs_path.c_str());
     if (!file.is_open())
