@@ -6,7 +6,7 @@
 /*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:23 by alraltse          #+#    #+#             */
-/*   Updated: 2026/03/03 12:51:57 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/03/03 15:21:16 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -209,7 +209,17 @@ string ConfigParser::get_absolute_path_to_dict(string root) {
     if (realpath(root.c_str(), abs_path) != NULL)
     {
         string root_path(abs_path);
-        return root_path;
+
+        if (root_path.find("cpp") != string::npos 
+            || root_path.find("hpp") != string::npos
+            || root_path.find("html") != string::npos
+            || root_path.find("py") != string::npos
+            || root_path.find("db") != string::npos
+            || root_path.find("png") != string::npos
+            || root_path.find("md") != string::npos)
+            throw runtime_error("path '" + root + "' is not a config file");
+        else
+            return root_path;
     }
 
     throw runtime_error("realpath failed for '" + root + "': " + strerror(errno));

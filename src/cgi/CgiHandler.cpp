@@ -95,11 +95,11 @@ string CgiHandler::run()
         body = request.get_Body();
 
     if (pipe(in_pipe) == -1 || pipe(out_pipe) == -1)
-        throw CgiException("Error: pipe creation failed.");
+        return "500";
 
     pid = fork();
     if (pid < 0)
-        throw CgiException("Error: fork failed");
+        return "500";
 
     if (pid == 0)
     {
