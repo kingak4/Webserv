@@ -47,5 +47,7 @@ class EpollManager
 		const struct epoll_event &get_Epoll_Event(void) const;
 		const map<int, Server *> &get_Servers_Running(void) const;
 };
+string get_Current_Date_RFC(bool is_short);
 
+extern EpollManager *g_epoll_manager;;
 #endif 

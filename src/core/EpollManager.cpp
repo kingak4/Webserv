@@ -2,6 +2,8 @@
 
 // sig_atomic_t: an integer type that can be accessed atomically
 volatile sig_atomic_t g_server_running = 1;
+EpollManager *g_epoll_manager = NULL;
+
 
 string get_Current_Date_RFC(bool is_short)
 {
@@ -9,28 +11,26 @@ string get_Current_Date_RFC(bool is_short)
 	struct tm *time_struct = gmtime(&current_time);
 	if (!time_struct)
 		return (std::string());
-	const char *days[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 	const char *months[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
 							  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 	char buffer[100];
 	if (is_short)
 	{
-		sprintf(buffer, "%02d %s %04d, %02d:%02d:%02d GMT",
+		sprintf(buffer, "%02d %s %04d, %02d:%02d:%02d GMT+1",
 				time_struct->tm_mday,
 				months[time_struct->tm_mon],
 				time_struct->tm_year + 1900,
-				time_struct->tm_hour,
+				time_struct->tm_hour + 1,
 				time_struct->tm_min,
 				time_struct->tm_sec);
 	}
 	else
 	{
-		sprintf(buffer, "%s, %02d %s %04d %02d:%02d:%02d GMT",
-				days[time_struct->tm_wday],
+		sprintf(buffer, "%02d%02d%04d_%02d%02d%02d",
 				time_struct->tm_mday,
-				months[time_struct->tm_mon],
+				time_struct->tm_mon + 1,
 				time_struct->tm_year + 1900,
-				time_struct->tm_hour,
+				time_struct->tm_hour + 1,
 				time_struct->tm_min,
 				time_struct->tm_sec);
 	}
@@ -115,7 +115,7 @@ void EpollManager::init_Epoll(vector<ServerData> &config_splitted)
 
 	for (vector<ServerData>::iterator it = config_splitted.begin(); it != config_splitted.end(); ++it)
 	{
-		Server *server = new Server(it->port, *this);		
+		Server *server = new Server(it->port, it->host, *this);		
 		int socket_fd = server->get_socket();
 
 		this->event.data.fd = socket_fd;
@@ -239,16 +239,12 @@ string find_requested_server(Request& request, ConfigParser& config_parser, Clie
 
     if (server_block && route_block)
     {
-		// cout << "server_name: " << server_block->get_server_name() << endl;
-		// cout << "server_block: " << server_block->get_root_dir() << endl;
-		// cout << "route_block: " << route_block->get_route_name() << route_block->get_url() << endl;
         response = route_block->form_response();
         if (response == "")
         {
             cout << "response is NULL" << endl;
         }
 		cout << endl;
-        //cout << response << endl;
 
         delete server_block;
         delete route_block;
@@ -281,21 +277,11 @@ string process_request(const string &request_str, Client &client, ConfigParser &
 
 	stringstream ss;
 	ss << "Request recived: " << parser.get_Method() << " " << parser.get_Path() << " on port " << client.get_Server()->get_port() << ".";
-	Console::message(ss.str(), type, true);
-	// if (parser.is_Valid())
-	// 	return "HTTP/1.1 200 OK\r\n\r\nHello World";
-	// else
-	// 	return "HTTP/1.1 400 OK\r\n\r\n";
+	Console::message(ss.str(), type, false);
 	Request request;
     request.buildFromParser(parser);
 
     return find_requested_server(request, config_parser, client);
-
-	// cout << "Request recived: " << parser.get_Method() << " " << parser.get_Path() << " on port " << client.get_Server()->get_port() << "." << endl;
-	// if (parser.is_Valid())
-	// 	return "HTTP/1.1 200 OK\r\n\r\nHello World";
-	// else
-	// 	return "HTTP/1.1 400 OK\r\n\r\n";
 }
 
 void handle_Read(struct epoll_event &event, Client &client, ConfigParser &config_parser)

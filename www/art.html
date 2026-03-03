@@ -114,8 +114,6 @@
             margin-bottom: 40px;
         }
 
-        body.light-mode .section-card { box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-
         h2 { color: var(--blue-primary); margin-bottom: 15px; }
 
         .upload-box {
@@ -157,7 +155,7 @@
 
         .gallery-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 20px;
             margin-top: 20px;
         }
@@ -172,27 +170,36 @@
             align-items: center;
             justify-content: center;
             color: var(--text-dim);
-            font-size: 0.8rem;
             background-size: cover;
             background-position: center;
             overflow: hidden;
             position: relative;
+            transition: transform 0.2s;
         }
 
-        .art-item.placeholder {
-            border-style: dotted;
-            opacity: 0.5;
-        }
+        .art-item:hover { transform: scale(1.03); }
 
         .art-info {
             position: absolute;
             bottom: 0;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.7);
             width: 100%;
             text-align: center;
-            padding: 5px;
+            padding: 8px;
             color: white;
-            font-size: 10px;
+            font-size: 11px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .empty-msg {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: var(--text-dim);
+            border: 1px dashed var(--border-col);
+            border-radius: 10px;
         }
     </style>
 </head>
@@ -236,17 +243,14 @@
         <section class="section-card">
             <h2>Art Gallery</h2>
             <div class="gallery-grid" id="gallery">
-                <div class="art-item placeholder">Gallery Item 1</div>
-                <div class="art-item placeholder">Gallery Item 2</div>
-                <div class="art-item placeholder">Gallery Item 3</div>
-            </div>
+                </div>
             
             <button class="delete-btn" id="delete-art-btn">Delete Art</button>
         </section>
     </div>
 
     <script>
-
+        // --- THEME MANAGEMENT ---
         const themeToggle = document.getElementById('theme-toggle');
         const themeIcon = document.getElementById('theme-icon');
         const body = document.body;
@@ -263,28 +267,73 @@
             localStorage.setItem('theme', isLight ? 'light' : 'dark');
         });
 
-
+        // --- GALLERY & FILE MANAGEMENT ---
         const fileInput = document.getElementById('file-upload');
         const fileNameLabel = document.getElementById('file-name');
         const uploadBtn = document.getElementById('submit-upload');
         const gallery = document.getElementById('gallery');
         const deleteBtn = document.getElementById('delete-art-btn');
 
+        // Refresh gallery from server
+        async function loadGallery() {
+            gallery.innerHTML = '<div class="empty-msg">Loading art...</div>';
+            try {
+                // Fetch list of files from your CGI script
+                const response = await fetch('/cgi-bin/list_images.py');
+                if (!response.ok) throw new Error("Server error");
+                
+                const files = await response.json();
+                
+                gallery.innerHTML = ''; // Clear loading message
+
+                if (files.length === 0) {
+                    gallery.innerHTML = '<div class="empty-msg">No art found. Be the first to upload!</div>';
+                    return;
+                }
+
+                files.forEach((fileObj, index) => {
+                    const artItem = document.createElement('div');
+                    artItem.className = 'art-item uploaded-art';
+                    
+                    // We store the SERVER NAME in the dataset for the DELETE request
+                    artItem.dataset.serverid = fileObj.serverID; 
+                    
+                    // Use the SERVER NAME to fetch the actual image bytes
+                    artItem.style.backgroundImage = `url('/uploads/${fileObj.serverID}')`;
+                    
+                    const info = document.createElement('div');
+                    info.className = 'art-info';
+                    
+                    // We show the USER NAME (e.g. "zoom_in.png") to the human
+                    info.innerText = `${index + 1}. ${fileObj.userLabel}`;
+                    
+                    artItem.appendChild(info);
+                    gallery.appendChild(artItem);
+                });
+            } catch (err) {
+                gallery.innerHTML = '<div class="empty-msg" style="color: #ef4444;">Error: Failed to connect to server.</div>';
+            }
+        }
+
+        // Initial Load
+        window.addEventListener('DOMContentLoaded', loadGallery);
+
+        // Handle File Selection UI
         fileInput.addEventListener('change', () => {
             if (fileInput.files.length > 0) {
                 fileNameLabel.innerText = "Selected: " + fileInput.files[0].name;
             }
         });
 
+        // Handle Upload
         uploadBtn.addEventListener('click', async () => {
             if (fileInput.files.length === 0) {
                 alert("Please select a file first!");
                 return;
             }
 
-            const file = fileInput.files[0];
             const formData = new FormData();
-            formData.append('file', file);
+            formData.append('file', fileInput.files[0]);
 
             try {
                 const response = await fetch('/uploads', {
@@ -293,32 +342,10 @@
                 });
 
                 if (response.ok) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const placeholders = gallery.querySelectorAll('.placeholder');
-                        
-                        const newArt = document.createElement('div');
-                        newArt.className = 'art-item uploaded-art'; 
-                        newArt.dataset.filename = file.name;
-                        newArt.style.backgroundImage = `url(${e.target.result})`;
-                        
-                        const info = document.createElement('div');
-                        info.className = 'art-info';
-                        info.innerText = file.name;
-                        newArt.appendChild(info);
-
-                        if (placeholders.length > 0) {
-                            placeholders[0].replaceWith(newArt);
-                        } else {
-                            gallery.prepend(newArt);
-                        }
-                        
-                        alert('Successfully uploaded!');
-                    }
-                    reader.readAsDataURL(file);
-                    
+                    alert('Successfully uploaded!');
                     fileInput.value = '';
                     fileNameLabel.innerText = 'Select your file to upload';
+                    loadGallery(); // Refresh the grid
                 } else {
                     alert('Server error: ' + response.status);
                 }
@@ -327,51 +354,42 @@
             }
         });
 
+        // Handle Delete
         deleteBtn.addEventListener('click', async () => {
             const uploadedItems = gallery.querySelectorAll('.uploaded-art');
             
             if (uploadedItems.length === 0) {
-                alert("Gallery is empty (no uploaded files to delete)");
+                alert("No art to delete!");
                 return;
             }
 
-            const choice = prompt(`Which one to delete? (1 to ${uploadedItems.length})`);
+            const choice = prompt(`Which item number would you like to delete? (1 to ${uploadedItems.length})`);
             if (choice === null) return;
 
             const index = parseInt(choice) - 1;
 
             if (!isNaN(index) && index >= 0 && index < uploadedItems.length) {
                 const targetItem = uploadedItems[index];
-                const filenameToDelete = targetItem.dataset.filename;
+                const serverID = targetItem.dataset.serverid;
 
-                const confirmDelete = confirm(`Delete ${filenameToDelete} from server?`);
-                if (confirmDelete) {
+                if (confirm(`Delete item ${choice} (${serverID}) permanently?`)) {
                     try {
-                        const response = await fetch(`/uploads`, {
-                            method: 'DELETE',
-                            headers: {
-                                'File-To-Delete': filenameToDelete
-                            }
+                        const response = await fetch(`/uploads/${serverID}`, {
+                            method: 'DELETE'
                         });
 
                         if (response.ok || response.status === 204) {
-                            const placeholder = document.createElement('div');
-                            placeholder.className = 'art-item placeholder';
-                            placeholder.innerText = 'Gallery Item Placeholder';
-                            
-                            targetItem.remove();
-                            gallery.appendChild(placeholder);
-                            
-                            alert("Successfully deleted from server! 🗑️");
+                            alert("Deleted successfully!");
+                            loadGallery(); // Refresh the grid
                         } else {
-                            alert("Server refused to delete. Status: " + response.status);
+                            alert("Failed to delete. Server returned: " + response.status);
                         }
                     } catch (err) {
-                        alert("Error connecting to server to delete file.");
+                        alert("Network error while trying to delete.");
                     }
                 }
             } else {
-                alert("Invalid choice.");
+                alert("Invalid item number.");
             }
         });
     </script>

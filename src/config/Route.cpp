@@ -180,7 +180,6 @@ string Route::handle_autoindex()
     string index_path;
 
     index_path = filesystem_path + "/" + url;
-    // cout << "index_path: " << index_path << endl;
 
     if (autoindex == "off")
     {
@@ -191,7 +190,6 @@ string Route::handle_autoindex()
         }
         else
         {
-            // cout << "ERORR" << endl;
             return error_response("404");   
         }
     }
@@ -220,11 +218,13 @@ string Route::error_response(string error)
     string body;
 
     error_file_abs_path = find_abs_path("www/errors/" + error + ".html");
+
+	Console::message("DELETE fail, error code: " + error, ERROR, false);
     
     ifstream file(error_file_abs_path.c_str());
     if (!file.is_open())
     {
-        cout << "Coudn't open a file" << endl;
+		Console::message("Coudn't open a file", ERROR, false);
         return NULL;   
     }
 
@@ -315,27 +315,6 @@ bool Route::is_valid_request()
     return true;
 }
 
-// string Route::handle_delete()
-// {
-//     struct stat st;
-
-//     if (stat(filesystem_path.c_str(), &st) != 0)
-//         return error_response("404");
-
-//     if (!S_ISREG(st.st_mode))
-//         return error_response("403");
-
-//     if (unlink(filesystem_path.c_str()) != 0)
-//         return error_response("403");
-
-//     ostringstream headers;
-//     headers << "HTTP/1.1 204 No Content\r\n";
-//     headers << "Content-Length: 0\r\n";
-//     headers << "Connection: close\r\n";
-//     headers << "\r\n";
-
-//     return headers.str();
-// }
 string Route::handle_delete() 
 {
     string root = server.get_root_dir(); 
@@ -357,27 +336,33 @@ string Route::handle_delete()
     }
     if (filename.empty() || filename == "uploads" || filename == "uploads/") 
     {
-       // std::cout << "[ERROR] DELETE: No filename provided or target is a directory!" << std::endl;
         return error_response("400");
     }
     string full_path = root + "/uploads/" + filename;
-    //std::cout << "DEBUG: Final path to delete: " << full_path << std::endl;
     struct stat st;
     if (stat(full_path.c_str(), &st) != 0) 
     {
-        //std::cout << "DEBUG: File not found: " << full_path << std::endl;
         return error_response("404");
     }
     if (S_ISDIR(st.st_mode)) 
     {
-        //std::cout << "[ERROR] DELETE: Target is a directory!" << std::endl;
         return error_response("403");
     }
     if (unlink(full_path.c_str()) != 0) 
     {
-        //std::cout << "Unlink failed! Error: " << strerror(errno) << std::endl;
         return error_response("500");
     }
+	map<int, Server *> servers = g_epoll_manager->get_Servers_Running();
+
+	for(map<int, Server *>::iterator it = servers.begin(); it != servers.end(); ++it)
+	{
+		if (it->second->get_port() == this->server.get_port())
+		{
+			it->second->remove_uploaded_file_name(filename);
+			break;
+		}	
+	}
+
     std::ostringstream resp;
     resp << "HTTP/1.1 204 No Content\r\n";
     resp << "Access-Control-Allow-Origin: *\r\n";
@@ -385,6 +370,43 @@ string Route::handle_delete()
     resp << "Connection: close\r\n";
     resp << "\r\n";
     return (resp.str());
+}
+
+string set_unique_filename(string &actual_filename, map<string, string> &headers)
+{
+
+	map<string, string>::iterator it = headers.find("host");
+	if (it == headers.end())
+	{
+		Console::message("POST request header is missing host header.", WARNING, false);
+		return NULL;
+	}
+	string client_str = it->second;
+
+	int port_index = client_str.find(":") + 1;
+	stringstream ss;
+	int port;
+	ss << client_str.substr(port_index, client_str.length());
+	ss >> port;
+
+	map<int, Server *> servers = g_epoll_manager->get_Servers_Running();
+
+	int period_index = actual_filename.find(".");
+	string extention = actual_filename.substr(period_index, actual_filename.length());
+
+	string server_filename; 
+	for (map<int, Server *>::iterator it = servers.begin(); it != servers.end(); ++it)
+	{
+		Server *serv = it->second;
+		if (serv->get_port() == port)
+		{
+			stringstream index;
+			server_filename = "server-upload-" + get_Current_Date_RFC(false) + extention;
+			serv->create_uploaded_file_pair(server_filename, actual_filename);
+			break ;
+		}
+	}
+	return server_filename;	
 }
 
 string Route::handle_post()
@@ -408,19 +430,21 @@ string Route::handle_post()
         struct stat st;
         if (stat(upload_dir.c_str(), &st) != 0)
             mkdir(upload_dir.c_str(), 0777);
-        // string file_path = upload_dir + "/post_body.txt";
+
         string filename;
-        size_t name_start = body.find("filename=") + 10; // make  invidual file name for files in upolads 
-        size_t name_end = body.find("\"", name_start);
+
+        size_t name_start = body.find("filename=") + 10;
+		size_t name_end = body.find("\"", name_start);
         if (name_start != string::npos && name_end != string::npos)
         filename = body.substr(name_start, name_end - name_start);
+
+		string server_filename = set_unique_filename(filename, headers);
         
-        string file_path = upload_dir + "/" + filename;
+        string file_path = upload_dir + "/" + server_filename;
         ofstream file(file_path.c_str(), ios::binary);
         if (!file.is_open())
             return error_response("500");
-        //file.write(body.c_str(), body.size());
-        		// 1. Find the end of the headers
+
 		string headerEnd = "\r\n\r\n";
 		size_t dataStart = body.find(headerEnd, name_end) + headerEnd.length();
 		// 2. Find the start of the closing boundary
