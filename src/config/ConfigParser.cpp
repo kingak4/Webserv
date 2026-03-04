@@ -6,7 +6,7 @@
 /*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:23 by alraltse          #+#    #+#             */
-/*   Updated: 2026/03/04 14:10:35 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/03/04 15:44:58 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,6 +84,7 @@ void ConfigParser::parse_route_block(string line, Location& loc)
     string str_methods;
     string str_return;
 
+    loc.autoindex = "off";
     if ((pos = line.find("location")) != string::npos)
         loc.route_name = trim_str(line.substr(pos + string("location").length()));
     else if ((pos = line.find("default")) != string::npos)
@@ -99,7 +100,11 @@ void ConfigParser::parse_route_block(string line, Location& loc)
             loc.allowed_methods.push_back(method);
     }
     else if ((pos = line.find("autoindex")) != string::npos)
+    {
         loc.autoindex = trim_str(line.substr(pos + string("autoindex").length()));
+        // if (loc.autoindex.empty())
+        //     loc.autoindex = "off";
+    }
     else if ((pos = line.find("root")) != string::npos)
     {
         string trim_root = trim_str(line.substr(pos + string("root").length()));
