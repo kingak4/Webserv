@@ -15,6 +15,7 @@ class Client
 		string resopnse;
 		bool is_header_readed;
 		int content_len;
+		bool is_chunked;
 	public:
 		Client(int socket, const Server *server);
 		Client(void);
@@ -27,6 +28,8 @@ class Client
 		void set_Response(const string &new_response);
 		int get_Socket(void) const;
 		bool get_is_header_readed(void);
+		bool get_is_chunked(void);
+		void set_is_chunked(bool value);
 		int get_content_len(void);
 		void set_is_header_readed(bool state);
 		void set_content_len(int len);
