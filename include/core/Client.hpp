@@ -13,6 +13,12 @@ class Client
 		const Server *server;
 		string buffer;
 		string resopnse;
+<<<<<<< Updated upstream
+=======
+		bool is_header_readed;
+		int content_len;
+		bool is_chunked;
+>>>>>>> Stashed changes
 	public:
 		Client(int socket, const Server *server);
 		Client(void);
@@ -24,6 +30,15 @@ class Client
 		const string &get_Response(void) const;
 		void set_Response(const string &new_response);
 		int get_Socket(void) const;
+<<<<<<< Updated upstream
+=======
+		bool get_is_header_readed(void);
+		bool get_is_chunked(void);
+		void set_is_chunked(bool value);
+		int get_content_len(void);
+		void set_is_header_readed(bool state);
+		void set_content_len(int len);
+>>>>>>> Stashed changes
 		const Server *get_Server(void) const;
 };
 #endif
