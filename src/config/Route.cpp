@@ -520,7 +520,8 @@ string Route::form_response()
 {
     FsType filesystem_status;
     string cgi_output;
-	
+	string response;
+
 	if (redir_code == 301 || redir_code == 302)
 	{
 		stringstream ss;
@@ -574,7 +575,15 @@ string Route::form_response()
                 return cgi.build_cgi_response(cgi_output);   
             }
             else
-                return handle_autoindex(); 
+                return handle_autoindex();
+    }
+    if (request.get_Method() == "HEAD")
+    {
+        size_t separator = response.find("\r\n\r\n");
+        if (separator != string::npos)
+        {
+            return response.substr(0, separator + 4);
+        }
     }
     return error_response("500");
 }

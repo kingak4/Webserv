@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Parser.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
+/*   By: kikwasni <kikwasni@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/03 11:25:29 by kikwasni          #+#    #+#             */
-/*   Updated: 2026/03/03 17:13:27 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/03/04 12:38:16 by kikwasni         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,7 +111,7 @@ void Parser::parse_First_Line()
 	
 bool Parser::validate_Method() const
 {
-	if(method == "GET" || method == "POST" || method == "DELETE")
+	if(method == "GET" || method == "POST" || method == "DELETE" || method == "HEAD")
 		return(true);
 	return(false);
 }
