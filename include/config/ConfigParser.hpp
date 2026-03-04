@@ -6,7 +6,7 @@
 /*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:57 by alraltse          #+#    #+#             */
-/*   Updated: 2026/03/03 15:39:37 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/03/04 13:30:00 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@ struct Location
     string url;
     vector<string> allowed_methods;
     string autoindex;
+    string root;
     int redir_code;
 };
 

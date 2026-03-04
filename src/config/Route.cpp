@@ -20,6 +20,7 @@ Route::Route(Location& loc, Request& request, Config& server_block) : server(ser
     vector<string> method = loc.allowed_methods;
     allowed_methods = loc.allowed_methods;
     autoindex = loc.autoindex;
+    root = loc.root;
 	redir_code = loc.redir_code;
 
     request_method = request.get_Method();
@@ -516,6 +517,15 @@ string Route::handle_post()
     return (response.str());
 }
 
+FsType Route::get_root_type()
+{
+    struct stat path;
+
+    if (stat(root.c_str(), &path) == 0 && S_ISDIR(path.st_mode))
+        return FS_IS_DIR;
+    return FS_NOT_FOUND;
+}
+
 string Route::form_response()
 {
     FsType filesystem_status;
@@ -542,14 +552,17 @@ string Route::form_response()
             return error_response("413");
     }
 
-    filesystem_status = get_filesystem_type();
+    if (root != "")
+        filesystem_status = get_root_type();
+    else
+        filesystem_status = get_filesystem_type();
     
     if (request.get_Method() == "DELETE")
         return handle_delete();
 
     if (request.get_Method() == "POST" && !is_cgi())
         return handle_post();
-        
+ 
     switch(filesystem_status)
     {
         case FS_NOT_FOUND:
@@ -606,6 +619,11 @@ const vector<string>& Route::get_allowed_methods() const
 const string& Route::get_autoindex() const
 {
     return autoindex;
+}
+
+const string& Route::get_root() const
+{
+    return root;
 }
 
 const string& Route::get_filesystem_path() const
