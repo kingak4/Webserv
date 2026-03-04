@@ -293,10 +293,18 @@ void handle_Read(struct epoll_event &event, Client &client, ConfigParser &config
 		ssize_t count = read(event.data.fd, buffer, sizeof(buffer));		
 		if (count == -1)
 		{
-			if (client.get_is_header_readed() && client.get_content_len() <= 0)
+			if (client.get_is_header_readed())
 			{
-				client.set_Response(process_request(client.get_Buffer(), client, config_parser));
-				break;
+				if (client.get_is_chunked())
+				{
+					if (client.get_Buffer().find("0\r\n\r\n") != string::npos)
+						client.set_Response(process_request(client.get_Buffer(), client, config_parser));
+				}
+				else if (client.get_content_len() <= 0)
+				{
+					client.set_Response(process_request(client.get_Buffer(), client, config_parser));
+					break;
+				}
 			}
 			client.set_is_header_readed(false);
 			client.set_content_len(0);
@@ -335,6 +343,8 @@ void handle_Read(struct epoll_event &event, Client &client, ConfigParser &config
                         int body_already_read = buf.length() - (pos_end_head + 4);
                         client.set_content_len(full_content_len - body_already_read);
                     }
+					else if (buf.find("Transfer-Encoding: chunked") != string::npos)
+						client.set_is_chunked(true);	
                     else
                         client.set_content_len(0);
                 }
@@ -342,13 +352,26 @@ void handle_Read(struct epoll_event &event, Client &client, ConfigParser &config
             else
                 client.set_content_len(client.get_content_len() - count);
 
-			if (client.get_is_header_readed() && client.get_content_len() <= 0)
+			if (client.get_is_header_readed())
 			{
-				client.set_Response(process_request(client.get_Buffer(), client, config_parser));
+				if (client.get_is_chunked())
+				{
+					if (client.get_Buffer().find("0\r\n\r\n") != string::npos)
+					{
+						client.set_Response(process_request(client.get_Buffer(), client, config_parser));
+						client.set_is_header_readed(false);
+						client.set_is_chunked(false);
+						return;
+					}
+				}
+				else if (client.get_content_len() <= 0)
+				{
+					client.set_Response(process_request(client.get_Buffer(), client, config_parser));
 
-				client.set_is_header_readed(false);
-				client.set_content_len(0);
-				return;
+					client.set_is_header_readed(false);
+					client.set_content_len(0);
+					return;
+				}
 			}
         }
 	}
