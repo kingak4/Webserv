@@ -372,7 +372,7 @@ string Route::handle_delete()
 
 string set_unique_filename(string &actual_filename, map<string, string> &headers)
 {
-
+    string timestamp = get_Current_Date_RFC(false);
 	map<string, string>::iterator it = headers.find("host");
 	if (it == headers.end())
 	{
@@ -381,7 +381,11 @@ string set_unique_filename(string &actual_filename, map<string, string> &headers
 	}
 	string client_str = it->second;
 
-	int port_index = client_str.find(":") + 1;
+	size_t port_index = client_str.find(":") + 1;
+    if (port_index == string::npos)
+    {
+        return ("form-" + timestamp + ".dat");
+    }
 	stringstream ss;
 	int port;
 	ss << client_str.substr(port_index, client_str.length());
@@ -389,7 +393,11 @@ string set_unique_filename(string &actual_filename, map<string, string> &headers
 
 	map<int, Server *> servers = g_epoll_manager->get_Servers_Running();
 
-	int period_index = actual_filename.find(".");
+	size_t period_index = actual_filename.find(".");
+    if (period_index == string::npos)
+    {
+        return ("form-" + timestamp + ".dat");
+    }
 	string extention = actual_filename.substr(period_index, actual_filename.length());
 
 	string server_filename; 
@@ -399,7 +407,7 @@ string set_unique_filename(string &actual_filename, map<string, string> &headers
 		if (serv->get_port() == port)
 		{
 			stringstream index;
-			server_filename = "server-upload-" + get_Current_Date_RFC(false) + extention;
+			server_filename = "server-upload-" + timestamp + extention;
 			serv->create_uploaded_file_pair(server_filename, actual_filename);
 			break ;
 		}
@@ -419,43 +427,11 @@ string Route::handle_post()
 
     map<string, string> headers = request.get_Headers();
     string content_type = "";
-    if (headers.find("Content-Type") != headers.end())
-        content_type = headers["Content-Type"];
+    if (headers.find("content-type") != headers.end())
+        content_type = headers["content-type"];
 
     if (content_type.find("multipart/form-data") == string::npos)
     {
-        string upload_dir = server.get_root_dir() + "/uploads";
-        struct stat st;
-        if (stat(upload_dir.c_str(), &st) != 0)
-            mkdir(upload_dir.c_str(), 0777);
-
-        string filename;
-
-        size_t name_start = body.find("filename=") + 10;
-		size_t name_end = body.find("\"", name_start);
-        if (name_start != string::npos && name_end != string::npos)
-        filename = body.substr(name_start, name_end - name_start);
-
-		string server_filename = set_unique_filename(filename, headers);
-        
-        string file_path = upload_dir + "/" + server_filename;
-        ofstream file(file_path.c_str(), ios::binary);
-        if (!file.is_open())
-            return error_response("500");
-
-		string headerEnd = "\r\n\r\n";
-		size_t dataStart = body.find(headerEnd, name_end) + headerEnd.length();
-		// 2. Find the start of the closing boundary
-		string boundary = "------geckoformboundary";
-		size_t dataEnd = body.find(boundary, dataStart);
-		// 3. Calculate length (subtract 2 to remove the \r\n before the boundary)
-		size_t fileLength = (dataEnd - 2) - dataStart;
-		// 4. Extract and Write as BINARY
-		string fileData = body.substr(dataStart, fileLength);
-        if (!file.is_open())
-            return error_response("500");
-        file.write(fileData.c_str(), body.size());
-        file.close();
         ostringstream response;
         response << "HTTP/1.1 201 Created\r\n";
         response << "Content-Length: 0\r\n";
@@ -480,29 +456,36 @@ string Route::handle_post()
             pos = end;
             continue;
         }
+
+        string filename = "";
+        size_t name_start = body.find("filename=");
+        if (name_start == string::npos)
+        {
+
+        }
+        else
+        {
+            name_start += 10;
+            size_t name_end = body.find("\"", name_start);
+            if (name_end != string::npos)
+                filename = body.substr(name_start, name_end - name_start);
+            else
+                filename = "";
+        }
         string part_header = part.substr(0, header_end);
         string part_body = part.substr(header_end + 4);
-        time_t now = time(NULL);
-        char timestamp[32];
-        sprintf(timestamp, "%ld", now);
-        string filename = "upload_";
-        filename += timestamp;
-        filename += ".dat";
-        size_t fn_pos = part_header.find("filename=\"");
-        if (fn_pos != string::npos)
-        {
-            size_t fn_end = part_header.find("\"", fn_pos + 10);
-            if (fn_end != string::npos)
-                filename = part_header.substr(fn_pos + 10, fn_end - (fn_pos + 10));
-        }
+        string server_filename;
 
+        server_filename = set_unique_filename(filename, headers);
+        
         string upload_dir = server.get_root_dir() + "/uploads";
+        string file_path = upload_dir + "/" + server_filename;
+
         struct stat st;
         if (stat(upload_dir.c_str(), &st) != 0)
             mkdir(upload_dir.c_str(), 0777);
 
-        string full_path = upload_dir + "/" + filename;
-        ofstream file(full_path.c_str(), ios::binary);
+        ofstream file(file_path.c_str(), ios::binary);
         if (!file.is_open())
             return error_response("500");
         file.write(part_body.c_str(), part_body.size());
