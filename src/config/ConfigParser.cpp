@@ -6,7 +6,7 @@
 /*   By: alraltse <alraltse@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/05 12:12:23 by alraltse          #+#    #+#             */
-/*   Updated: 2026/03/04 15:44:58 by alraltse         ###   ########.fr       */
+/*   Updated: 2026/03/05 14:29:43 by alraltse         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,6 +85,7 @@ void ConfigParser::parse_route_block(string line, Location& loc)
     string str_return;
 
     loc.autoindex = "off";
+
     if ((pos = line.find("location")) != string::npos)
         loc.route_name = trim_str(line.substr(pos + string("location").length()));
     else if ((pos = line.find("default")) != string::npos)
@@ -100,17 +101,11 @@ void ConfigParser::parse_route_block(string line, Location& loc)
             loc.allowed_methods.push_back(method);
     }
     else if ((pos = line.find("autoindex")) != string::npos)
-    {
         loc.autoindex = trim_str(line.substr(pos + string("autoindex").length()));
-        // if (loc.autoindex.empty())
-        //     loc.autoindex = "off";
-    }
     else if ((pos = line.find("root")) != string::npos)
     {
         string trim_root = trim_str(line.substr(pos + string("root").length()));
-        // cout << "trim_root: " << trim_root << endl;
         loc.root = get_absolute_path_to_dict(trim_root);
-        // cout << "loc.root: " << loc.root << endl;
     }
     else if ((pos = line.find("return")) != string::npos)
     {
@@ -153,6 +148,12 @@ void ConfigParser::parse_config_file(string& filename)
     in_location = false;
 
     config_servers.clear();
+
+    current_location.route_name = "";
+    current_location.autoindex = "off";
+    current_location.url = "";
+    current_location.root = "";
+    current_location.redir_code = 0;
 
     while (getline(config, line))
     {

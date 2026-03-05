@@ -163,6 +163,7 @@ Route* get_route_block(ServerData server, Request& request, Config& server_block
 {
     vector<Location>& locations = server.locations;
     string path = request.get_Path();
+	cout << "path: " << path << endl;
     string route_path;
     size_t pos;
 	Location* best_match = NULL;
@@ -265,7 +266,8 @@ string process_request(const string &request_str, Client &client, ConfigParser &
 {
 	Parser parser(request_str);
 	parser.parse_Request();
-	
+	cout << "parse.get_Path(): " << parser.get_Path() << endl;
+
 	Message_type type;	
 	string method = parser.get_Method();
 	if (method == "GET")
@@ -281,6 +283,7 @@ string process_request(const string &request_str, Client &client, ConfigParser &
 	Request request;
     request.buildFromParser(parser);
 
+	cout << "request.get_Path(): " << request.get_Path() << endl;
     return find_requested_server(request, config_parser, client);
 }
 

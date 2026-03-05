@@ -31,6 +31,7 @@ Route::Route(Location& loc, Request& request, Config& server_block) : server(ser
     request_path = trim(retrieve_request_path(request_full_path));
     request_query = retrieve_request_query(request_full_path);
 
+    cout << "request_path: " << request_path << endl; 
     filesystem_path = server.get_root_dir() + request_path;
 }
 
@@ -128,6 +129,9 @@ string Route::trim(const string& str)
 
 string Route::serve_directory_listing(string& filesystem_path)
 {
+    if (root != "")
+        filesystem_path = root + request_path;
+
     DIR *dir = opendir(filesystem_path.c_str());
     if (!dir)
         return error_response("500");
@@ -146,14 +150,21 @@ string Route::serve_directory_listing(string& filesystem_path)
         string name = entry->d_name;
 
         if (name == ".")
-            continue ;
+            continue;
 
-        body << "<li><a href=\"" << url;
+        string dir_url = url;
 
-        if (url[url.length() - 1] != '/')
-            body << "/";
+        if (!dir_url.empty() && dir_url[dir_url.length() - 1] != '/')
+        {
+            size_t pos = dir_url.find_last_of('/');
+            if (pos != string::npos)
+                dir_url = dir_url.substr(0, pos + 1);
+            else
+                dir_url = "/";
+        }
 
-        body << name << "\">" << name << "</a></li>\n";
+        string href = dir_url + name;
+        body << "<li><a href=\"" << href << "\">" << name << "</a></li>\n";
     }
     
     body << "</ul>\n";
@@ -181,12 +192,10 @@ string Route::handle_autoindex()
     string index_path;
 
     if (root != "")
-        index_path = root + "/" + url;
+        index_path = root + route_name + "/" + url;
     else
         index_path = filesystem_path + "/" + url;
     
-    cout << "index_path: " << index_path << endl;
-    cout << "autoindex: " << autoindex << endl;
     if (autoindex == "off")
     {
         if (stat(index_path.c_str(), &st) == 0 && S_ISREG(st.st_mode))
@@ -297,6 +306,8 @@ string Route::serve_static_file()
 {
     struct stat st;
 
+    if (root != "")
+        filesystem_path = root + request_path;
     if (stat(filesystem_path.c_str(), &st) == 0 && S_ISREG(st.st_mode))
         return read_static_file(filesystem_path);
     else
@@ -525,9 +536,18 @@ string Route::handle_post()
 FsType Route::get_root_type()
 {
     struct stat path;
+    string final_root;
 
-    if (stat(root.c_str(), &path) == 0 && S_ISDIR(path.st_mode))
+    final_root = root + request_path;
+    if (stat(final_root.c_str(), &path) != 0)
+        return FS_NOT_FOUND;
+    
+    if (S_ISREG(path.st_mode))
+        return FS_IS_FILE;
+
+    if (S_ISDIR(path.st_mode))
         return FS_IS_DIR;
+
     return FS_NOT_FOUND;
 }
 
@@ -537,6 +557,7 @@ string Route::form_response()
     string cgi_output;
 	string response;
 
+    cout << "filesystem_path: " << filesystem_path << endl;
 	if (redir_code == 301 || redir_code == 302)
 	{
 		stringstream ss;
