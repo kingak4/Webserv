@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by kikwasni, alraltse, korzecho*
+*This project has been created as part of the 42 curriculum by [kikwasni](https://github.com/kingak4), [alraltse](https://github.com/alrltgit), [korzecho](https://github.com/Fistxszek)*
 
 <p align="center">
   <img src="webserv.png" alt="Webserv Preview" width="230"/>
