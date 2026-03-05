@@ -443,12 +443,35 @@ string Route::handle_post()
         return error_response("400");
     string boundary = "--" + content_type.substr(boundary_pos + 9);
     size_t pos = 0;
+
+	
+	string filename = "";
+	size_t name_start = body.find("filename=");
+	if (name_start != string::npos)
+	{
+		name_start += 10;
+		size_t name_end = body.find("\"", name_start);
+		if (name_end != string::npos)
+			filename = body.substr(name_start, name_end - name_start);
+		else
+			filename = "";
+	}
+
+	struct stat st;
+	string server_filename = set_unique_filename(filename, headers);
+	string upload_dir = server.get_root_dir() + "/uploads";
+	string file_path = upload_dir + "/" + server_filename;
+
+	if (stat(upload_dir.c_str(), &st) != 0)
+		mkdir(upload_dir.c_str(), 0777);
+	ofstream file(file_path.c_str(), ios::binary);
+	if (!file.is_open())
+		return error_response("500");
+
     while ((pos = body.find(boundary, pos)) != string::npos)
     {
         size_t start = pos + boundary.size() + 2;
         size_t end = body.find(boundary, start);
-        if (end == string::npos)
-            break;
         string part = body.substr(start, end - start);
         size_t header_end = part.find("\r\n\r\n");
         if (header_end == string::npos)
@@ -457,41 +480,24 @@ string Route::handle_post()
             continue;
         }
 
-        string filename = "";
-        size_t name_start = body.find("filename=");
-        if (name_start == string::npos)
-        {
-
-        }
-        else
-        {
-            name_start += 10;
-            size_t name_end = body.find("\"", name_start);
-            if (name_end != string::npos)
-                filename = body.substr(name_start, name_end - name_start);
-            else
-                filename = "";
-        }
         string part_header = part.substr(0, header_end);
         string part_body = part.substr(header_end + 4);
-        string server_filename;
 
-        server_filename = set_unique_filename(filename, headers);
-        
-        string upload_dir = server.get_root_dir() + "/uploads";
-        string file_path = upload_dir + "/" + server_filename;
-
-        struct stat st;
-        if (stat(upload_dir.c_str(), &st) != 0)
-            mkdir(upload_dir.c_str(), 0777);
-
-        ofstream file(file_path.c_str(), ios::binary);
-        if (!file.is_open())
-            return error_response("500");
         file.write(part_body.c_str(), part_body.size());
-        file.close();
         pos = end;
+		size_t max_size = 1024;
+		while (body.find(boundary, pos) == string::npos && end != body.length())
+		{
+			if (body.length() < end + max_size)
+				end = body.length();
+			else
+				end += max_size;
+			part_body = body.substr(pos, end - pos);
+			file.write(part_body.c_str(), part_body.size());
+			pos = end;
+		}
     }
+	file.close();
     ostringstream response;
     response << "HTTP/1.1 201 Created\r\n";
     response << "Content-Length: 0\r\n";
