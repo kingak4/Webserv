@@ -485,17 +485,6 @@ string Route::handle_post()
 
         file.write(part_body.c_str(), part_body.size());
         pos = end;
-		size_t max_size = 1024;
-		while (body.find(boundary, pos) == string::npos && end != body.length())
-		{
-			if (body.length() < end + max_size)
-				end = body.length();
-			else
-				end += max_size;
-			part_body = body.substr(pos, end - pos);
-			file.write(part_body.c_str(), part_body.size());
-			pos = end;
-		}
     }
 	file.close();
     ostringstream response;
