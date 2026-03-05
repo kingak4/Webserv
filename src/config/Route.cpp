@@ -20,6 +20,7 @@ Route::Route(Location& loc, Request& request, Config& server_block) : server(ser
     vector<string> method = loc.allowed_methods;
     allowed_methods = loc.allowed_methods;
     autoindex = loc.autoindex;
+    root = loc.root;
 	redir_code = loc.redir_code;
 
     request_method = request.get_Method();
@@ -127,6 +128,9 @@ string Route::trim(const string& str)
 
 string Route::serve_directory_listing(string& filesystem_path)
 {
+    if (root != "")
+        filesystem_path = root + request_path;
+
     DIR *dir = opendir(filesystem_path.c_str());
     if (!dir)
         return error_response("500");
@@ -145,14 +149,21 @@ string Route::serve_directory_listing(string& filesystem_path)
         string name = entry->d_name;
 
         if (name == ".")
-            continue ;
+            continue;
 
-        body << "<li><a href=\"" << url;
+        string dir_url = url;
 
-        if (url[url.length() - 1] != '/')
-            body << "/";
+        if (!dir_url.empty() && dir_url[dir_url.length() - 1] != '/')
+        {
+            size_t pos = dir_url.find_last_of('/');
+            if (pos != string::npos)
+                dir_url = dir_url.substr(0, pos + 1);
+            else
+                dir_url = "/";
+        }
 
-        body << name << "\">" << name << "</a></li>\n";
+        string href = dir_url + name;
+        body << "<li><a href=\"" << href << "\">" << name << "</a></li>\n";
     }
     
     body << "</ul>\n";
@@ -179,8 +190,11 @@ string Route::handle_autoindex()
     struct stat st;
     string index_path;
 
-    index_path = filesystem_path + "/" + url;
-
+    if (root != "")
+        index_path = root + route_name + "/" + url;
+    else
+        index_path = filesystem_path + "/" + url;
+    
     if (autoindex == "off")
     {
         if (stat(index_path.c_str(), &st) == 0 && S_ISREG(st.st_mode))
@@ -291,6 +305,8 @@ string Route::serve_static_file()
 {
     struct stat st;
 
+    if (root != "")
+        filesystem_path = root + request_path;
     if (stat(filesystem_path.c_str(), &st) == 0 && S_ISREG(st.st_mode))
         return read_static_file(filesystem_path);
     else
@@ -516,11 +532,30 @@ string Route::handle_post()
     return (response.str());
 }
 
+FsType Route::get_root_type()
+{
+    struct stat path;
+    string final_root;
+
+    final_root = root + request_path;
+    if (stat(final_root.c_str(), &path) != 0)
+        return FS_NOT_FOUND;
+    
+    if (S_ISREG(path.st_mode))
+        return FS_IS_FILE;
+
+    if (S_ISDIR(path.st_mode))
+        return FS_IS_DIR;
+
+    return FS_NOT_FOUND;
+}
+
 string Route::form_response()
 {
     FsType filesystem_status;
     string cgi_output;
-	
+	string response;
+
 	if (redir_code == 301 || redir_code == 302)
 	{
 		stringstream ss;
@@ -541,14 +576,17 @@ string Route::form_response()
             return error_response("413");
     }
 
-    filesystem_status = get_filesystem_type();
+    if (root != "")
+        filesystem_status = get_root_type();
+    else
+        filesystem_status = get_filesystem_type();
     
     if (request.get_Method() == "DELETE")
         return handle_delete();
 
     if (request.get_Method() == "POST" && !is_cgi())
         return handle_post();
-        
+ 
     switch(filesystem_status)
     {
         case FS_NOT_FOUND:
@@ -574,7 +612,15 @@ string Route::form_response()
                 return cgi.build_cgi_response(cgi_output);   
             }
             else
-                return handle_autoindex(); 
+                return handle_autoindex();
+    }
+    if (request.get_Method() == "HEAD")
+    {
+        size_t separator = response.find("\r\n\r\n");
+        if (separator != string::npos)
+        {
+            return response.substr(0, separator + 4);
+        }
     }
     return error_response("500");
 }
@@ -597,6 +643,11 @@ const vector<string>& Route::get_allowed_methods() const
 const string& Route::get_autoindex() const
 {
     return autoindex;
+}
+
+const string& Route::get_root() const
+{
+    return root;
 }
 
 const string& Route::get_filesystem_path() const

@@ -336,7 +336,7 @@
             formData.append('file', fileInput.files[0]);
 
             try {
-                const response = await fetch('/uploads', {
+                const response = await fetch('/art', {
                     method: 'POST',
                     body: formData
                 });
@@ -374,7 +374,7 @@
 
                 if (confirm(`Delete item ${choice} (${serverID}) permanently?`)) {
                     try {
-                        const response = await fetch(`/uploads/${serverID}`, {
+                        const response = await fetch(`/art/${serverID}`, {
                             method: 'DELETE'
                         });
 

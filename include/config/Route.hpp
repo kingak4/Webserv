@@ -48,6 +48,7 @@ class Route
         string url;
         vector<string> allowed_methods;
         string autoindex;
+        string root;
         int redir_code;
 
         string filesystem_path;
@@ -74,6 +75,7 @@ class Route
         string handle_autoindex();
         string serve_directory_listing(string& filesystem_path);
         string handle_post();
+        FsType get_root_type();
 
         // VALIDATION CHECKS
         bool is_valid_request_path();
@@ -90,6 +92,7 @@ class Route
         const string& get_url() const;
         const vector<string>& get_allowed_methods() const;
         const string& get_autoindex() const;
+        const string& get_root() const;
         const string& get_filesystem_path() const;
         const string& get_request_query() const;
         const string& get_request_path() const;

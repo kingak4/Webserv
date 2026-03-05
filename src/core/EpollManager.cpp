@@ -265,7 +265,7 @@ string process_request(const string &request_str, Client &client, ConfigParser &
 {
 	Parser parser(request_str);
 	parser.parse_Request();
-	
+
 	Message_type type;	
 	string method = parser.get_Method();
 	if (method == "GET")

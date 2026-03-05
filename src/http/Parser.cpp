@@ -6,7 +6,7 @@
 /*   By: kikwasni <kikwasni@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/03 11:25:29 by kikwasni          #+#    #+#             */
-/*   Updated: 2026/02/17 13:00:25 by kikwasni         ###   ########.fr       */
+/*   Updated: 2026/03/04 12:38:16 by kikwasni         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,7 +111,7 @@ void Parser::parse_First_Line()
 	
 bool Parser::validate_Method() const
 {
-	if(method == "GET" || method == "POST" || method == "DELETE")
+	if(method == "GET" || method == "POST" || method == "DELETE" || method == "HEAD")
 		return(true);
 	return(false);
 }
@@ -437,9 +437,12 @@ std::string Parser::extract_Chunked_Body()
 }
 
 
-bool Parser::validate_Chunks()
+bool Parser::validate_Chunks() // empty chunked body
 {
+	// size_t chunked_start = raw_request.find("chunked\r\n");
 	size_t body_start = raw_request.find("\r\n\r\n");
+	if(body_start == string::npos)
+		return false;
 	if(body_start == string::npos)
 		return false;
 	body_start += 4;
