@@ -31,7 +31,6 @@ Route::Route(Location& loc, Request& request, Config& server_block) : server(ser
     request_path = trim(retrieve_request_path(request_full_path));
     request_query = retrieve_request_query(request_full_path);
 
-    cout << "request_path: " << request_path << endl; 
     filesystem_path = server.get_root_dir() + request_path;
 }
 
@@ -557,7 +556,6 @@ string Route::form_response()
     string cgi_output;
 	string response;
 
-    cout << "filesystem_path: " << filesystem_path << endl;
 	if (redir_code == 301 || redir_code == 302)
 	{
 		stringstream ss;
