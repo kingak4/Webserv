@@ -235,9 +235,10 @@
             event.preventDefault();
 
             const formData = new FormData();
-            formData.append('email', document.getElementById('email').value);
-            formData.append('subject', document.getElementById('subject').value);
-            formData.append('message', document.getElementById('message').value);
+            formData.append('Form', "Contact");
+            formData.append('email', "email: " + document.getElementById('email').value);
+            formData.append('subject', "subjct: " + document.getElementById('subject').value);
+            formData.append('message', "message: " + document.getElementById('message').value);
 
             try {
                 const response = await fetch('/contact', {
