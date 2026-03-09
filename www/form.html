@@ -312,11 +312,11 @@
             submitBtn.innerText = "Sending...";
 
             try {
-                const responseForm = await fetch('/uploads', {
+                const responseForm = await fetch('/form', {
                     method: 'POST',
                     body: formData
                 });
-                const responseFile = await fetch('/uploads', {
+                const responseFile = await fetch('/form', {
                     method: 'POST',
                     body: fileData
                 });
