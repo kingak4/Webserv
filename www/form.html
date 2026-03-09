@@ -299,22 +299,37 @@
             }
 
             const formData = new FormData();
-            formData.append('first_name', document.getElementById('fname').value);
-            formData.append('last_name', document.getElementById('lname').value);
-            formData.append('location', document.getElementById('location').value);
-            formData.append('github', document.getElementById('github').value);
-            formData.append('file', fileInput.files[0]);
+            const fileData = new FormData();
+            formData.append('Form', "Form");
+            formData.append('first_name', "name: " + document.getElementById('fname').value);
+            formData.append('last_name', "last name: " +document.getElementById('lname').value);
+            formData.append('location', "location: " +document.getElementById('location').value);
+            formData.append('github', "github: " + document.getElementById('github').value);
+            formData.append('file', "filename: " +fileInput.files[0].name);
+            fileData.append('file', fileInput.files[0]);
 
             submitBtn.disabled = true;
             submitBtn.innerText = "Sending...";
 
             try {
-                const response = await fetch('/uploads', {
+                const responseForm = await fetch('/uploads', {
                     method: 'POST',
                     body: formData
                 });
+                const responseFile = await fetch('/uploads', {
+                    method: 'POST',
+                    body: fileData
+                });
 
-                if (response.ok) {
+                if (responseForm.ok) {
+                    formContainer.style.display = 'none';
+                    successMsg.style.display = 'block';
+                } else {
+                    alert("Error: Server responded with " + response.status);
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Send Application";
+                }
+                if (responseFile.ok) {
                     formContainer.style.display = 'none';
                     successMsg.style.display = 'block';
                 } else {
